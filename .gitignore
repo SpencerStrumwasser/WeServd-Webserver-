@@ -32,3 +32,6 @@
 .idea/
 out/
 .idea_modules/
+
+# Mac clang files
+*.dSYM

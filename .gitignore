@@ -26,6 +26,7 @@
 *.exe
 *.out
 *.app
+webserver
 
 # IntelliJ IDE Files
 *.iml

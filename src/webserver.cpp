@@ -1,3 +1,7 @@
+// Code based off of echo Server boost: 
+// http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/example/cpp03/
+//     echo/blocking_tcp_echo_server.cpp
+
 #include <cstdlib>
 #include <iostream>
 #include <boost/bind.hpp>

@@ -4,54 +4,9 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <boost/bind.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
 #include "parser/config_parser.h"
-
-using boost::asio::ip::tcp;
-
-const int max_length = 1024;
-
-typedef boost::shared_ptr<tcp::socket> socket_ptr;
-
-void session(socket_ptr sock)
-{
-    try
-    {
-        while(true)
-        {
-            char data[max_length];
-
-            boost::system::error_code error;
-            size_t length = sock->read_some(boost::asio::buffer(data), error);
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw boost::system::system_error(error); // Some other error.
-            std::string hello_str = "<html><body>Hello, world!</body></html>";
-            boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
-                                                          hello_str.size()));
-        }
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
-    }
-}
-
-void server(boost::asio::io_service& io_service, unsigned short port)
-{
-    tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
-    // Accept connections
-    while(true)
-    {
-        socket_ptr sock(new tcp::socket(io_service));
-        a.accept(*sock);
-        boost::thread t(boost::bind(session, sock));
-    }
-}
 
 int process_statements(std::vector<std::shared_ptr<NginxConfigStatement>> statements)
 {
@@ -137,9 +92,19 @@ int main(int argc, char* argv[])
             return -1;
         }
 
-        // Launch echo server
+        // Launch localhost server using given port
+        using boost::asio::ip::tcp;
         boost::asio::io_service io_service;
-        server(io_service, (unsigned short)port);
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v6(), (unsigned short)port));
+        while(true)
+        {
+            tcp::socket socket(io_service);
+            acceptor.accept(socket);
+            std::string message = "<html><body>Hello, world!</body></html>";
+            boost::system::error_code ignored_error;
+            boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
+            printf("%d", ignored_error.value());
+        }
     }
     catch (std::exception& e)
     {

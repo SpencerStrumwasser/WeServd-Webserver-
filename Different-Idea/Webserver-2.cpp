@@ -25,7 +25,7 @@ int main()
 			boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
 		}
 	}
-	catech(std::exception& e)ls
+	catch(std::exception& e)
     {
         std::cerr<<e.what() <<std::endl;
     }

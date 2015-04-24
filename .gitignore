@@ -34,5 +34,8 @@ webserver
 out/
 .idea_modules/
 
+# Diff files
+*.orig
+
 # Mac clang files
 *.dSYM

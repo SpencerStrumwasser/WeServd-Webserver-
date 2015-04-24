@@ -20,21 +20,19 @@ void session(socket_ptr sock)
 {
     try
     {
-        while(true)
-        {
-            char data[max_length];
+        
+            
 
             boost::system::error_code error;
-            size_t length = sock->read_some(boost::asio::buffer(data), error);
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
+            
+
+            if (error)
                 throw boost::system::system_error(error); // Some other error.
             std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
                                           "<html><body>Hello, world!</body></html>");
             boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
                                                           hello_str.size()));
-        }
+        
     }
     catch (std::exception& e)
     {

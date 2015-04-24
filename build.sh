@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CFLAGS="-std=c++0x -g -Wall -lboost_system -lboost_thread-mt"
+CFLAGS="-std=c++0x -g -Wall -lboost_system -lboost_thread"
 CFLAGS_MAC="-g -Wall -std=c++11 -stdlib=libc++ -lboost_system -lboost_thread-mt"
 SRC=src
 PARSER_SRC=src/parser

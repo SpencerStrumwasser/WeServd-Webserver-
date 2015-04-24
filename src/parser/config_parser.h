@@ -27,6 +27,9 @@ class NginxConfigParser {
  public:
   NginxConfigParser() {}
 
+  // Toggle debugging, disabled by default
+  static bool debug;
+
   // Take a opened config file or file name (respectively) and store the
   // parsed config in the provided NginxConfig out-param.  Returns true
   // iff the input config file is valid.

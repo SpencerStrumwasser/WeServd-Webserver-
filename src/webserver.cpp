@@ -12,26 +12,17 @@
 
 using boost::asio::ip::tcp;
 
-const int max_length = 1024;
-
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
 void session(socket_ptr sock)
 {
     try
     {
-        
-            
-
-            boost::system::error_code error;
-            
-
-            if (error)
-                throw boost::system::system_error(error); // Some other error.
-            std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
-                                          "<html><body>Hello, world!</body></html>");
-            boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
-                                                          hello_str.size()));
+        // Send Hello World message
+        std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                                      "<html><body>Hello, world!</body></html>");
+        boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
+                                                      hello_str.size()));
         
     }
     catch (std::exception& e)
@@ -42,8 +33,8 @@ void session(socket_ptr sock)
 
 void server(boost::asio::io_service& io_service, unsigned short port)
 {
+    // Accept incoming connections
     tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
-    // Accept connections
     while(true)
     {
         socket_ptr sock(new tcp::socket(io_service));

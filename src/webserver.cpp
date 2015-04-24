@@ -22,10 +22,10 @@ void session(socket_ptr sock)
     {
         while(true)
         {
-            char data[max_length];
+            
 
             boost::system::error_code error;
-            size_t length = sock->read_some(boost::asio::buffer(data), error);
+            
             if (error == boost::asio::error::eof)
                 break; // Connection closed cleanly by peer.
             else if (error)

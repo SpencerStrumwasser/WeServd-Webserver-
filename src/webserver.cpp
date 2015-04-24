@@ -30,7 +30,8 @@ void session(socket_ptr sock)
                 break; // Connection closed cleanly by peer.
             else if (error)
                 throw boost::system::system_error(error); // Some other error.
-            std::string hello_str = "<html><body>Hello, world!</body></html>";
+            std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                                          "<html><body>Hello, world!</body></html>");
             boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
                                                           hello_str.size()));
         }

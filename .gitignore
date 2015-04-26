@@ -27,6 +27,7 @@
 *.out
 *.app
 webserver
+webserver-tests
 
 # IntelliJ IDE Files
 *.iml

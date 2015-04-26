@@ -4,4 +4,4 @@ project(WeServd)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES src/webserver.cpp)
-add_executable(WeServd ${SOURCE_FILES})
+add_executable(WeServd ${SOURCE_FILES} src/parser/ParserProcessor.cpp src/parser/ParserProcessor.h)

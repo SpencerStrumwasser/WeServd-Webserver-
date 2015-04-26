@@ -35,10 +35,14 @@ all: webserver
 
 # Source files
 parser.o:
-	$(CC) -c $(PARSER)/config_parser.cc $(CFLAGS) -o $(BUILD)/parser.o
+	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/parser.o
 
-webserver: parser.o
-	$(CC) $(BUILD)/parser.o $(SRC)/webserver.cpp \
+parser_processor.o: 
+	$(CC) -c $(PARSER)/ParserProcessor.cpp $(CFLAGS) \
+	-o $(BUILD)/parser_processor.o
+
+webserver: parser_processor.o parser.o
+	$(CC) $(BUILD)/parser_processor.o  $(BUILD)/parser.o $(SRC)/webserver.cpp \
 	$(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
 test-server: all

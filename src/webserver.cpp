@@ -8,7 +8,10 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
-#include "parser/config_parser.h"
+
+#include "parser/ParserProcessor.h"
+
+static const char *server_domain = "http://localhost";
 
 using boost::asio::ip::tcp;
 
@@ -43,55 +46,6 @@ void server(boost::asio::io_service& io_service, unsigned short port)
     }
 }
 
-int process_statements(std::vector<std::shared_ptr<NginxConfigStatement>> statements)
-{
-    // Flag specifying that the next token read will be the port number
-    bool next_token_port = false;
-
-    // Number of statements to iterate through
-    unsigned long num_statements = statements.size();
-    for(unsigned long i = 0; i < num_statements; i++)
-    {
-        // Statement at the current index
-        std::shared_ptr<NginxConfigStatement> cur_statement;
-        cur_statement = statements.at(i);
-
-        // Check if there are any child statements
-        if (cur_statement->child_block_.get() != nullptr) {
-            // Get child statements and process them recursively
-            std::vector<std::shared_ptr<NginxConfigStatement>> child_statements;
-            child_statements = cur_statement->child_block_->statements_;
-
-            // Try to get the port from the child statements, if found return it
-            int try_port = process_statements(child_statements);
-            if (try_port != -1)
-                return try_port;
-        }
-
-        // Number of tokens for the current statement to iterate through
-        unsigned long num_tokens = cur_statement->tokens_.size();
-        for(unsigned long j = 0; j < num_tokens; j++) {
-            // Token at the index
-            std::string cur_token = cur_statement->tokens_.at(j);
-            // Last token read was the port specifier
-            if (next_token_port)
-                return std::stoi(cur_token);
-            // Port string specifier
-            if (cur_token == "port")
-                next_token_port = true;
-        }
-    }
-    return -1;
-}
-
-int get_port(NginxConfig *config) {
-    // Get the statements from the config
-    std::vector<std::shared_ptr<NginxConfigStatement>> statements;
-    statements = config->statements_;
-    return process_statements(statements);
-}
-
-
 int main(int argc, char* argv[])
 {
     try
@@ -107,29 +61,15 @@ int main(int argc, char* argv[])
         config_parser.Parse(argv[1], &config);
 
         // Get the port from the parsed configuration file
-        int port = get_port(&config);
-        if (port < 0)
-        {
-            // TODO: move to exception raised
-            fprintf(stderr, "ERROR: No port given in configuration file");
-            return -1;
-        }
-        else if (port == 0)
-        {
-            // TODO: move to exception raised
-            fprintf(stderr, "ERROR: port given cannot be 0.");
-            return -1;
-        }
-        else if (port > 65536)
-        {
-            // TODO: move to exception raised
-            fprintf(stderr, "ERROR: Port out of bounds: not in range 1-65536");
-            return -1;
-        }
+        ParserProcessor parser_processor = ParserProcessor(config);
+        unsigned short port = parser_processor.get_port();
+
+        // Print server address
+        fprintf(stderr, "Starting server at %s:%d\n",server_domain, port);
 
         // Launch echo server
         boost::asio::io_service io_service;
-        server(io_service, (unsigned short)port);
+        server(io_service, port);
     }
     catch (std::exception& e)
     {

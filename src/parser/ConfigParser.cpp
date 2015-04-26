@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "config_parser.h"
+#include "ConfigParser.h"
 
 // Set to true to enable debugging output by default
 bool NginxConfigParser::debug = false;

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "config_parser.h"
+#include "ConfigParser.h"
 
 static const char *test_config = "tests/parser/test_config";
 

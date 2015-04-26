@@ -1,11 +1,13 @@
 #include "gtest/gtest.h"
 #include "config_parser.h"
 
+static const char *test_config = "tests/parser/test_config";
+
 TEST(NginxConfigParserTest, SimpleConfig) {
   NginxConfigParser parser;
   NginxConfig out_config;
 
-  bool success = parser.Parse("example_config", &out_config);
+  bool success = parser.Parse(test_config, &out_config);
 
   EXPECT_TRUE(success);
 }

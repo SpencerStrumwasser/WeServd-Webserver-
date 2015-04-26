@@ -19,7 +19,7 @@ class NginxConfigStatement {
 class NginxConfig {
  public:
   std::string ToString(int depth = 0);
-  std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
+  std::vector<std::shared_ptr<NginxConfigStatement>>statements_;
 };
 
 // The driver that parses a config file and generates an NginxConfig.

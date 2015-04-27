@@ -31,7 +31,13 @@ ifeq ($(OS), Darwin)
 	CLEAN=*.dSYM 
 endif
 
-all: webserver
+# Create a build directory if not already created (-p: avoid error if present)
+.PHONY: directories
+directories:
+	mkdir -p build
+
+
+all: directories webserver
 
 # Source files
 parser.o:
@@ -48,15 +54,19 @@ webserver: parser_processor.o parser.o
 test-server: all
 	./webserver default_config
 
-# Tests
-gtest:
+
+# Test files
+test: directories all-tests
+	./$(TESTS_NAME)
+
+gtest-all.o:
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(GTEST) -c \
 	$(GTEST)/src/gtest-all.cc -o $(BUILD)/gtest-all.o
 
-archive: gtest
+archive: gtest-all.o
 	$(AR) $(BUILD)/libgtest.a $(BUILD)/gtest-all.o
 
-gtest-main.o: gtest
+gtest-main.o: gtest-all.o
 	$(CC) $(TEST_FLAGS) -I $(GTEST)/include \
 	-c $(GTEST)/src/gtest_main.cc -o $(BUILD)/gtest-main.o
 
@@ -69,15 +79,17 @@ all-tests: archive parser-tests.o
 	$(BUILD)/libgtest.a $(BUILD)/parser-tests.o $(BUILD)/gtest-main.o \
 	-o $(TESTS_NAME) 
 
-test: all-tests
-	./$(TESTS_NAME)
 
 # Cleaning
+
+# Not actual created files, phony files
+.PHONY: clean clean-general clean-parser
+
 clean: clean-parser clean-general
 
 clean-general:
-	rm -rf webserver
+	rm -rf $(NAME) $(TESTS_NAME)
 
 clean-parser: 
-	rm -rf build/* config_parser_test $(CLEAN)
+	rm -rf build/* $(CLEAN)
 

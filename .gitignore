@@ -35,6 +35,9 @@ webserver-tests
 out/
 .idea_modules/
 
+# Build files
+build
+
 # Diff files
 *.orig
 

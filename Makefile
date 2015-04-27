@@ -31,13 +31,12 @@ ifeq ($(OS), Darwin)
 	CLEAN=*.dSYM 
 endif
 
+all: directories webserver
+
 # Create a build directory if not already created (-p: avoid error if present)
 .PHONY: directories
 directories:
 	mkdir -p build
-
-
-all: directories webserver
 
 # Source files
 parser.o:
@@ -63,7 +62,7 @@ gtest-all.o:
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(GTEST) -c \
 	$(GTEST)/src/gtest-all.cc -o $(BUILD)/gtest-all.o
 
-archive: gtest-all.o
+libgtest.a: gtest-all.o
 	$(AR) $(BUILD)/libgtest.a $(BUILD)/gtest-all.o
 
 gtest-main.o: gtest-all.o
@@ -74,7 +73,7 @@ parser-tests.o: gtest-main.o parser.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
 	-c $(PARSER_TEST)/config_parser_test.cc -o $(BUILD)/parser-tests.o
 
-all-tests: archive parser-tests.o
+all-tests: libgtest.a parser-tests.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/parser.o \
 	$(BUILD)/libgtest.a $(BUILD)/parser-tests.o $(BUILD)/gtest-main.o \
 	-o $(TESTS_NAME) 

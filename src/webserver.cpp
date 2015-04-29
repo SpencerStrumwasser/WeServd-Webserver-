@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
@@ -19,6 +20,14 @@ const int max_length = 1024;
 
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
+std::string format_range(const std::string& format_string, const std::vector<std::string>& args)
+{
+    boost::format f(format_string);
+    for (std::vector<std::string>::const_iterator it = args.begin(); it != args.end(); ++it) {
+        f % *it;
+    }
+    return f.str();
+}
 
 void session(socket_ptr sock)
 {
@@ -26,18 +35,27 @@ void session(socket_ptr sock)
     {
         for (;;)
         {
-         char data[max_length];
+            char data[max_length];
 
-         boost::system::error_code error;
-         size_t length = sock->read_some(boost::asio::buffer(data), error);
-         if (error == boost::asio::error::eof)
-             break; // Connection closed cleanly by peer.
-         else if (error)
-             throw boost::system::system_error(error); // Some other error.
-         std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
-                                    "<html><body>%s</body></html>",data);
-         boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(), 
-                                                        hello_str.size()));
+            boost::system::error_code error;
+            size_t length = sock->read_some(boost::asio::buffer(data), error);
+            if (error == boost::asio::error::eof)
+                break; // Connection closed cleanly by peer.
+            else if (error)
+                throw boost::system::system_error(error); // Some other error.
+            // Make a string to return to the request with the header (%s)
+            std::string response_str_format("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                                             "<html><body>%s</body></html>");
+            // Make a string from the received data
+            std::string data_str(data);
+            // Make an arguments array to pass into the response string
+            std::vector<std::string> args;
+            args.push_back(data_str);
+
+            std::string response_str = format_range(response_str_format, args);
+
+            boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
+                                                          response_str.size()));
         }
     }
     catch (std::exception& e)

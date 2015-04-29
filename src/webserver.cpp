@@ -33,16 +33,12 @@ void session(socket_ptr sock)
 {
     try
     {
-        for (;;)
-        {
+
             char data[max_length];
 
             boost::system::error_code error;
             size_t length = sock->read_some(boost::asio::buffer(data), error);
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw boost::system::system_error(error); // Some other error.
+
             // Make a string to return to the request with the header (%s)
             std::string response_str_format("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
                                              "<html><body>%s</body></html>");
@@ -56,7 +52,6 @@ void session(socket_ptr sock)
 
             boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
                                                           response_str.size()));
-        }
     }
     catch (std::exception& e)
     {

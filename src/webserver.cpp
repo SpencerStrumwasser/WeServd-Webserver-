@@ -15,18 +15,30 @@ static const char *server_domain = "http://localhost";
 
 using boost::asio::ip::tcp;
 
+const int max_length = 1024;
+
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
+
 
 void session(socket_ptr sock)
 {
     try
     {
-        // Send Hello World message
-        std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
-                                      "<html><body>Hello, world!</body></html>");
-        boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(),
-                                                      hello_str.size()));
-        
+        for (;;)
+        {
+         char data[max_length];
+
+         boost::system::error_code error;
+         size_t length = sock->read_some(boost::asio::buffer(data), error);
+         if (error == boost::asio::error::eof)
+             break; // Connection closed cleanly by peer.
+         else if (error)
+             throw boost::system::system_error(error); // Some other error.
+         std::string hello_str("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                                    "<html><body>%s</body></html>",data);
+         boost::asio::write(*sock, boost::asio::buffer(hello_str.c_str(), 
+                                                        hello_str.size()));
+        }
     }
     catch (std::exception& e)
     {
@@ -69,6 +81,7 @@ int main(int argc, char* argv[])
 
         // Launch echo server
         boost::asio::io_service io_service;
+        using namespace std;
         server(io_service, port);
     }
     catch (std::exception& e)

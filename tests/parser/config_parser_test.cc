@@ -125,3 +125,4 @@ TEST_F(NginxStringConfigTest, SimpleTextConfig5){
 	EXPECT_TRUE(ParseString("server foo bar baz;"));
 
 }
+

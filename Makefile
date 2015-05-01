@@ -75,8 +75,8 @@ parser-tests.o: gtest-main.o parser.o
 
 all-tests: libgtest.a parser-tests.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/parser.o \
-	$(BUILD)/libgtest.a $(BUILD)/parser-tests.o $(BUILD)/gtest-main.o \
-	-o $(TESTS_NAME) 
+	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o $(BUILD)/gtest-main.o \
+	-lpthread -o $(TESTS_NAME) 
 
 
 # Cleaning

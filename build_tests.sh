@@ -18,7 +18,7 @@ case `uname` in
   Darwin)
     clang++ -std=c++11 -stdlib=libc++ -isystem ${GTEST_DIR}/include -I${GTEST_DIR} -pthread -c ${GTEST_DIR}/src/gtest-all.cc -o ${BUILD_DIR}/gtest-all.o
     ar -rv ${BUILD_DIR}/libgtest.a ${BUILD_DIR}/gtest-all.o
-    clang++ -std=c++11 -stdlib=libc++ -isystem ${GTEST_DIR}/include -I${PARSER_DIR} -pthread ${PARSER_DIR}/${PARSER_FILE} \
+    clang++ -std=c++11 -stdlib=libc++ -g -Wall -lboost_system -lboost_thread -isystem -isystem ${GTEST_DIR}/include -I${PARSER_DIR} -pthread ${PARSER_DIR}/${PARSER_FILE} \
     ${PARSER_TEST_DIR}/${PARSER_TEST_FILE} ${GTEST_DIR}/src/gtest_main.cc ${BUILD_DIR}/libgtest.a -o config_parser_test ;;
   *)
     echo "Unknown operating system." ;;

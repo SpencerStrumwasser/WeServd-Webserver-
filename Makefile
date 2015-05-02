@@ -42,15 +42,15 @@ directories:
 parser.o:
 	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/parser.o
 
-parser_processor.o: 
+parser-processor.o: 
 	$(CC) -c $(PARSER)/ParserProcessor.cpp $(CFLAGS) \
-	-o $(BUILD)/parser_processor.o
+	-o $(BUILD)/parser-processor.o
 
-webserver: parser_processor.o parser.o
-	$(CC) $(BUILD)/parser_processor.o  $(BUILD)/parser.o $(SRC)/webserver.cpp \
+webserver: parser-processor.o parser.o
+	$(CC) $(BUILD)/parser-processor.o  $(BUILD)/parser.o $(SRC)/webserver.cpp \
 	$(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
-test-server: all
+run: all
 	./webserver default_config
 
 
@@ -71,12 +71,19 @@ gtest-main.o: gtest-all.o
 
 parser-tests.o: gtest-main.o parser.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
-	-c $(PARSER_TEST)/config_parser_test.cc -o $(BUILD)/parser-tests.o
+	-c $(PARSER_TEST)/config_parser_test.cc	-o $(BUILD)/parser-tests.o
 
-all-tests: libgtest.a parser-tests.o
+parser-processor-tests.o: gtest-main.o parser-processor.o
+	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
+	-c $(PARSER_TEST)/ServerTest.cpp \
+	-o $(BUILD)/parser-processor-tests.o
+
+all-tests: libgtest.a parser-tests.o parser-processor-tests.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/parser.o \
-	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o $(BUILD)/gtest-main.o \
-	-lpthread -o $(TESTS_NAME) 
+	$(BUILD)/parser-processor.o \
+	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o \
+	$(BUILD)/parser-processor-tests.o \
+	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME) 
 
 
 # Cleaning

@@ -33,25 +33,26 @@ void session(socket_ptr sock)
 {
     try
     {
+        char data[max_length];
 
-            char data[max_length];
+        boost::system::error_code error;
+        sock->read_some(boost::asio::buffer(data), error);
 
-            boost::system::error_code error;
-            size_t length = sock->read_some(boost::asio::buffer(data), error);
+        // Make a string to return to the request with the header (%s)
+        std::string response_str_format("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                                                "<html><body>%s</body></html>");
+        // Make a string from the received data
+        std::string data_str(data);
+        // Make an arguments array to pass into the response string
+        std::vector<std::string> args;
+        args.push_back(data_str);
 
-            // Make a string to return to the request with the header (%s)
-            std::string response_str_format("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
-                                             "<html><body>%s</body></html>");
-            // Make a string from the received data
-            std::string data_str(data);
-            // Make an arguments array to pass into the response string
-            std::vector<std::string> args;
-            args.push_back(data_str);
+        // Format the response string using the request header
+        std::string response_str = format_range(response_str_format, args);
 
-            std::string response_str = format_range(response_str_format, args);
-
-            boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
-                                                          response_str.size()));
+        // Echo the request header
+        boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
+                                                      response_str.size()));
     }
     catch (std::exception& e)
     {

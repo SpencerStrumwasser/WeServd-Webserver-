@@ -4,76 +4,16 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <boost/bind.hpp>
-#include <boost/format.hpp>
-#include <boost/smart_ptr.hpp>
-#include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
 
 #include "parser/ParserProcessor.h"
+#include "server/FileRequestHandler.h"
+#include "server/EchoRequestHandler.h"
 
 static const char *server_domain = "http://localhost";
 
-using boost::asio::ip::tcp;
-
-const int max_length = 1024;
-
-typedef boost::shared_ptr<tcp::socket> socket_ptr;
-
-std::string format_range(const std::string& format_string, const std::vector<std::string>& args)
-{
-    boost::format f(format_string);
-    for (std::vector<std::string>::const_iterator it = args.begin(); it != args.end(); ++it) {
-        f % *it;
-    }
-    return f.str();
-}
-
-void session(socket_ptr sock)
-{
-    try
-    {
-        char data[max_length];
-
-        boost::system::error_code error;
-        sock->read_some(boost::asio::buffer(data), error);
-
-        // Make a string to return to the request with the header (%s)
-        std::string response_str_format("HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
-                                                "<html><body>%s</body></html>");
-        // Make a string from the received data
-        std::string data_str(data);
-        // Make an arguments array to pass into the response string
-        std::vector<std::string> args;
-        args.push_back(data_str);
-
-        // Format the response string using the request header
-        std::string response_str = format_range(response_str_format, args);
-
-        // Echo the request header
-        boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
-                                                      response_str.size()));
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
-    }
-}
-
-void server(boost::asio::io_service& io_service, unsigned short port)
-{
-    // Accept incoming connections
-    tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
-    while(true)
-    {
-        socket_ptr sock(new tcp::socket(io_service));
-        a.accept(*sock);
-        boost::thread t(boost::bind(session, sock));
-    }
-}
-
 int main(int argc, char* argv[])
 {
+    using namespace std;
     try
     {
         if (argc != 2) {
@@ -91,16 +31,24 @@ int main(int argc, char* argv[])
         unsigned short port = parser_processor.get_port();
 
         // Print server address
-        fprintf(stderr, "Starting server at %s:%d\n",server_domain, port);
-
-        // Launch echo server
-        boost::asio::io_service io_service;
-        using namespace std;
-        server(io_service, port);
+        fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
+        
+        // TODO: move to option in config file
+        bool echo = false;
+        // Create request handler depending on the option (echo or file handler)
+        if (!echo){
+            strmap *paths = parser_processor.get_paths();
+            for (auto it = paths->begin(); it != paths->end(); ++it){
+                FileRequestHandler fileRequestHandler(it->second);
+            } 
+        }
+        else {
+            EchoRequestHandler requestHandler(port);
+            requestHandler.launch();
+        }
     }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception: " << e.what() << "\n";
+    catch (std::exception& e) {
+        cerr << "Exception: " << e.what() << "\n";
     }
 
     return 0;

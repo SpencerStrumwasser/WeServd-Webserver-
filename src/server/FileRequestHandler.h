@@ -18,11 +18,11 @@ struct reply;
 struct request;
 
 /// The common handler for all incoming requests.
-class RequestHandler: private boost::noncopyable
+class FileRequestHandler : private boost::noncopyable
 {
 public:
     /// Construct with a directory containing files to be served.
-    explicit RequestHandler(const std::string& doc_root);
+    explicit FileRequestHandler(const std::string& doc_root);
 
     /// Handle a request and produce a reply.
     void handle_request(const request& req, reply& rep);

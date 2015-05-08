@@ -9,6 +9,7 @@ TESTS_NAME=$(NAME)-tests
 SRC=src
 BUILD=build
 PARSER=$(SRC)/parser
+SERVER=$(SRC)/server
 
 # Test variables
 AR=ar -rv 
@@ -38,16 +39,40 @@ all: directories webserver
 directories:
 	mkdir -p build
 
-# Source files
-parser.o:
-	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/parser.o
+# ----- Source files ----- #
+
+# -- Parser Files -- #
+
+config-parser.o:
+	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/config-parser.o
 
 parser-processor.o: 
 	$(CC) -c $(PARSER)/ParserProcessor.cpp $(CFLAGS) \
 	-o $(BUILD)/parser-processor.o
 
-webserver: parser-processor.o parser.o
-	$(CC) $(BUILD)/parser-processor.o  $(BUILD)/parser.o $(SRC)/webserver.cpp \
+# -- Server Files -- #
+
+file-request-handler.o: 
+	$(CC) -c $(SERVER)/FileRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
+	-o $(BUILD)/file-request-handler.o
+
+echo-request-handler.o:
+	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) \
+	-o $(BUILD)/echo-request-handler.o
+
+mime-types.o:
+	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
+
+reply.o:
+	$(CC) -c $(SERVER)/reply.cpp $(CFLAGS) -o $(BUILD)/reply.o
+
+# -- Server -- #
+
+webserver: parser-processor.o config-parser.o echo-request-handler.o \
+		   file-request-handler.o mime-types.o reply.o
+	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
+	$(BUILD)/echo-request-handler.o $(BUILD)/file-request-handler.o \
+	$(BUILD)/mime-types.o $(BUILD)/reply.o $(SRC)/webserver.cpp \
 	$(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
 run: all
@@ -69,9 +94,9 @@ gtest-main.o: gtest-all.o
 	$(CC) $(TEST_FLAGS) -I $(GTEST)/include \
 	-c $(GTEST)/src/gtest_main.cc -o $(BUILD)/gtest-main.o
 
-parser-tests.o: gtest-main.o parser.o
+parser-tests.o: gtest-main.o config-parser.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
-	-c $(PARSER_TEST)/config_parser_test.cc	-o $(BUILD)/parser-tests.o
+	-c $(PARSER_TEST)/ConfigParserTests.cpp	-o $(BUILD)/parser-tests.o
 
 parser-processor-tests.o: gtest-main.o parser-processor.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
@@ -79,7 +104,7 @@ parser-processor-tests.o: gtest-main.o parser-processor.o
 	-o $(BUILD)/parser-processor-tests.o
 
 all-tests: libgtest.a parser-tests.o parser-processor-tests.o
-	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/parser.o \
+	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/config-parser.o \
 	$(BUILD)/parser-processor.o \
 	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o \
 	$(BUILD)/parser-processor-tests.o \

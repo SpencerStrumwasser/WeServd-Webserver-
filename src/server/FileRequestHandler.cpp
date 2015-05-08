@@ -1,7 +1,7 @@
 //
 // Created by David Pena on 5/7/15.
 //
-// RequestHandler.cpp
+// FileRequestHandler.cpp
 // ~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -10,20 +10,20 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "RequestHandler.h"
+#include "FileRequestHandler.h"
 #include <fstream>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
-#include "mime_types.h"
+#include "MimeTypes.h"
 #include "reply.h"
 #include "request.h"
 
-RequestHandler::RequestHandler(const std::string& doc_root)
+FileRequestHandler::FileRequestHandler(const std::string& doc_root)
         : doc_root_(doc_root)
 {
 }
 
-void RequestHandler::handle_request(const request& req, reply& rep)
+void FileRequestHandler::handle_request(const request& req, reply& rep)
 {
     // Decode url to path.
     std::string request_path;
@@ -77,7 +77,7 @@ void RequestHandler::handle_request(const request& req, reply& rep)
     rep.headers[1].value = mime_types::extension_to_type(extension);
 }
 
-bool RequestHandler::url_decode(const std::string& in, std::string& out)
+bool FileRequestHandler::url_decode(const std::string& in, std::string& out)
 {
     out.clear();
     out.reserve(in.size());

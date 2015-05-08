@@ -1,5 +1,5 @@
 //
-// mime_types.cpp
+// MimeTypes.cpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -8,7 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "mime_types.h"
+#include "MimeTypes.h"
 
 namespace mime_types {
 

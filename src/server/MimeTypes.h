@@ -1,5 +1,5 @@
 //
-// mime_types.hpp
+// MimeTypes.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)

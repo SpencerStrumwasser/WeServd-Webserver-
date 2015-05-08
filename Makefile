@@ -75,7 +75,7 @@ parser-tests.o: gtest-main.o parser.o
 
 parser-processor-tests.o: gtest-main.o parser-processor.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
-	-c $(PARSER_TEST)/ServerTest.cpp \
+	-c $(PARSER_TEST)/ParserProcessorTests.cpp \
 	-o $(BUILD)/parser-processor-tests.o
 
 all-tests: libgtest.a parser-tests.o parser-processor-tests.o

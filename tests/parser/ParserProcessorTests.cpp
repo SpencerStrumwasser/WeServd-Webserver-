@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "ParserProcessor.h"
+#include "../../src/parser/ParserProcessor.h"
 
 static const char *test_config = "tests/parser/test_config";
 
@@ -55,4 +56,24 @@ TEST(ParserProcessorTest, GetPortFile)
     // Make sure that the port number is as expected
     unsigned short port = parser_processor.get_port();
     EXPECT_EQ(8080, port);
+}
+
+/**
+ * Test a simple situation
+ */
+TEST(ParserProcessorTest, GetPath1)
+{
+    // Parse a mocked input
+    const std::string config_text("location1 /static/files;");
+    std::stringstream config_stream(config_text);
+    NginxConfigParser parser;
+    NginxConfig config;
+    parser.Parse(&config_stream, &config);
+
+    // Make sure that the paths are as expected
+    ParserProcessor parser_processor = ParserProcessor(config);
+    strmap *paths = parser_processor.get_paths();
+
+    strmap expected_values({"location1", "/static/files"});
+    EXPECT_EQ(*paths, expected_values);
 }

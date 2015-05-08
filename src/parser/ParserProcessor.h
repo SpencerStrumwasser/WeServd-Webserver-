@@ -6,9 +6,13 @@
 #define WESERVD_PARSERPROCESSOR_H
 
 #include <exception>
+#include <unordered_map>
 #include "ConfigParser.h"
 
 typedef std::vector<std::shared_ptr<NginxConfigStatement>> statements;
+
+typedef std::unordered_map<std::string, std::string> strmap;
+typedef std::pair<std::string, std::string> strpair;
 
 class ParsedValueError: public std::exception {
 private:
@@ -26,13 +30,21 @@ class ParserProcessor {
 public:
     ParserProcessor(NginxConfig config);
     /**
-     * Gets the port from the given parsed configuration
+     * Gets the port from the parsed configuration
      */
     unsigned short get_port();
+    /**
+     * Gets the paths from the parsed configuration
+     */
+    strmap *get_paths();
 
 private:
-    int value_for_key(statements parser_statements, std::string key);
+    std::string value_for_key(statements parser_statements, std::string key);
+    strmap *values_like_key(statements parser_statements, std::string prefix,
+                            strmap *results);
+    bool token_has_prefix(std::string token, std::string prefix);
     NginxConfig config;
+
 };
 
 

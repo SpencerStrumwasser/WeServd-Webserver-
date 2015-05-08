@@ -4,6 +4,11 @@
 
 #include "ParserProcessor.h"
 
+const std::string NOT_FOUND("NOT FOUND");
+
+const std::string PORT_TOKEN("port");
+const std::string PATH_TOKEN("location");
+
 ParserProcessor::ParserProcessor(NginxConfig config) {
     this->config = config;
 }
@@ -11,10 +16,10 @@ ParserProcessor::ParserProcessor(NginxConfig config) {
 /**
  * Gets the value from the statements for the given search key
  */
-int ParserProcessor::value_for_key(statements parser_statements, std::string key)
+std::string ParserProcessor::value_for_key(statements parser_statements, std::string key)
 {
-    // Flag specifying that the next token read will be the port number
-    bool next_token_port = false;
+    // Flag specifying that the next token read will be the key value
+    bool next_token_key_value = false;
 
     // Number of statements to iterate through
     unsigned long num_statements = parser_statements.size();
@@ -30,10 +35,10 @@ int ParserProcessor::value_for_key(statements parser_statements, std::string key
             statements child_statements;
             child_statements = cur_statement->child_block_->statements_;
 
-            // Try to get the port from the child statements, if found return it
-            int try_port = this->value_for_key(child_statements, key);
-            if (try_port != -1)
-                return try_port;
+            // Try to get the value from the child statements, if found return it
+            std::string try_key = this->value_for_key(child_statements, key);
+            if (try_key != NOT_FOUND)
+                return try_key;
         }
 
         // Number of tokens for the current statement to iterate through
@@ -41,22 +46,103 @@ int ParserProcessor::value_for_key(statements parser_statements, std::string key
         for(unsigned long j = 0; j < num_tokens; j++) {
             // Token at the index
             std::string cur_token = cur_statement->tokens_.at(j);
-            // Last token read was the port specifier
-            if (next_token_port)
-                return std::stoi(cur_token);
-            // Port string specifier
+            // Last token read was the key specifier
+            if (next_token_key_value)
+                return cur_token;
+            // Key string specifier
             if (cur_token == key)
-                next_token_port = true;
+                next_token_key_value = true;
         }
     }
-    return -1;
+    return NOT_FOUND;
+}
+
+/**
+ * Returns a map with the keys that start with the given search key, and
+ * the values for those keys.
+ */
+strmap *ParserProcessor::values_like_key(statements parser_statements,
+                                            std::string prefix,
+                                            strmap *results)
+{
+    // Flag specifying that the next token read will be the key value
+    bool next_token_key_value = false;
+    std::string prev_token_key;
+
+    // Number of statements to iterate through
+    unsigned long num_statements = parser_statements.size();
+    for(unsigned long i = 0; i < num_statements; i++)
+    {
+        // Statement at the current index
+        std::shared_ptr<NginxConfigStatement> cur_statement;
+        cur_statement = parser_statements.at(i);
+
+        // Check if there are any child statements
+        if (cur_statement->child_block_.get() != nullptr) {
+            // Get child statements and process them recursively
+            statements child_statements;
+            child_statements = cur_statement->child_block_->statements_;
+
+            // Try to get the values from the child statements
+            this->values_like_key(child_statements, prefix, results);
+        }
+
+        // Number of tokens for the current statement to iterate through
+        unsigned long num_tokens = cur_statement->tokens_.size();
+        for(unsigned long j = 0; j < num_tokens; j++) {
+            // Token at the index
+            std::string cur_token = cur_statement->tokens_.at(j);
+            // Last token read was the key specifier
+            if (next_token_key_value) {
+                // Store the found value
+                results->insert({prev_token_key, cur_token});
+                // Clear the values
+                next_token_key_value = false;
+                prev_token_key = "";
+            }
+
+            // Key string specifier
+            if (this->token_has_prefix(cur_token, prefix)) {
+                next_token_key_value = true;
+                prev_token_key = cur_token;
+            }
+        }
+    }
+    // No tokens found
+    if (!next_token_key_value)
+        return NULL;
+    else
+        return results;
+}
+
+/**
+ * Check if the token has the given prefix string
+ */
+bool ParserProcessor::token_has_prefix(std::string token, std::string prefix)
+{
+    // Check for prefix match
+    auto mismatch = std::mismatch(prefix.begin(), prefix.end(), token.begin());
+    if (mismatch.first == prefix.end())
+        return true;
+    else
+        return false;
+}
+
+#pragma mark - Public
+
+strmap *ParserProcessor::get_paths()
+{
+    strmap results;
+    // Get the statements from the config
+    statements parser_statements = this->config.statements_;
+    return this->values_like_key(parser_statements, PATH_TOKEN, &results);
 }
 
 unsigned short ParserProcessor::get_port() {
     // Get the statements from the config
     statements parser_statements = this->config.statements_;
 
-    int port = this->value_for_key(parser_statements, "port");
+    int port = std::stoi(this->value_for_key(parser_statements, PORT_TOKEN));
 
     if (port < 0)
         throw ParsedValueError("ERROR: No port given in configuration file");

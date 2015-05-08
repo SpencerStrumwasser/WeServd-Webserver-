@@ -4,14 +4,58 @@
 
 #include "ParserProcessor.h"
 
+// String Signifying value was not found
 const std::string NOT_FOUND("NOT FOUND");
 
+/* --- Config file value tokens --- */
 const std::string PORT_TOKEN("port");
 const std::string PATH_TOKEN("location");
+const std::string TYPE_TOKEN("server_type");
+
+/* --- Server Type Keywords --- */
+const std::string ECHO_TYPE("echo");
+const std::string FILE_TYPE("file");
+
+/* ----------------------- Public ----------------------- */
 
 ParserProcessor::ParserProcessor(NginxConfig config) {
     this->config = config;
 }
+
+unsigned short ParserProcessor::get_port() {
+    // Get the statements from the config
+    statements parser_statements = this->config.statements_;
+
+    int port = std::stoi(this->value_for_key(parser_statements, PORT_TOKEN));
+
+    if (port < 0)
+        throw ParsedValueError("ERROR: No port given in configuration file");
+    else if (port == 0)
+        throw ParsedValueError("ERROR: port given cannot be 0.");
+    else if (port > 65536)
+        throw ParsedValueError("ERROR: Port out of bounds: not in range 1-65536");
+
+    return (unsigned short)port;
+}
+
+ServerType::server_type ParserProcessor::get_server_type() {
+    // Get the statements from the config
+    statements parser_statements = this->config.statements_;
+    // Get server type string
+    std::string type_str = this->value_for_key(parser_statements, TYPE_TOKEN);
+
+    return this->type_from_string(type_str);
+}
+
+strmap *ParserProcessor::get_paths()
+{
+    strmap *results = new strmap;
+    // Get the statements from the config
+    statements parser_statements = this->config.statements_;
+    return this->values_like_key(parser_statements, PATH_TOKEN, results);
+}
+
+/* ----------------------- Private ----------------------- */
 
 /**
  * Gets the value from the statements for the given search key
@@ -118,7 +162,7 @@ strmap *ParserProcessor::values_like_key(statements parser_statements,
         return results;
 
 }
-
+/* ------------- Helper Functions ------------- */
 /**
  * Check if the token has the given prefix string
  */
@@ -132,28 +176,16 @@ bool ParserProcessor::token_has_prefix(std::string token, std::string prefix)
         return false;
 }
 
-/* ----------------------- Public ----------------------- */
-
-strmap *ParserProcessor::get_paths()
+ServerType::server_type ParserProcessor::type_from_string(std::string str)
 {
-    strmap *results = new strmap;
-    // Get the statements from the config
-    statements parser_statements = this->config.statements_;
-    return this->values_like_key(parser_statements, PATH_TOKEN, results);
+    using namespace ServerType;
+
+    if (str == FILE_TYPE)
+        return file_server;
+    else if (str == ECHO_TYPE)
+        return echo_server;
+    else
+        throw ParsedValueError("Invalid server type");
 }
 
-unsigned short ParserProcessor::get_port() {
-    // Get the statements from the config
-    statements parser_statements = this->config.statements_;
 
-    int port = std::stoi(this->value_for_key(parser_statements, PORT_TOKEN));
-
-    if (port < 0)
-        throw ParsedValueError("ERROR: No port given in configuration file");
-    else if (port == 0)
-        throw ParsedValueError("ERROR: port given cannot be 0.");
-    else if (port > 65536)
-        throw ParsedValueError("ERROR: Port out of bounds: not in range 1-65536");
-
-    return (unsigned short)port;
-}

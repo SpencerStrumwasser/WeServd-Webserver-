@@ -8,7 +8,11 @@ server {
     server_type file;
 
     # File locations to serve files from for file handling server
+<<<<<<< HEAD
     # Must be prefixed
+=======
+    # Must be prefixed with location and followed by any identifier
+>>>>>>> 4045c74... Added webserver type determination from the config file to the ParserProcessor
     location1 /static1/webserver_files/html;
     location2 /static2/webserver_files/image;
 }

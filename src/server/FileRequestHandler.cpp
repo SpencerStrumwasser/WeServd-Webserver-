@@ -38,11 +38,12 @@ void FileRequestHandler::launch()
         content += std::string(buffer, content_stream.gcount());
 
     }
+    handle_request(doc_root, std::rep);
 // I dont know how to use the header we have and then add the file
     std::string status = "HTTP/1.1 200 OK \n";
-    std::content_type = "Content-type:" + rep.headers[1].value;
-    std::content_length = "Content-length:" + rep.headers[0].value;
-    std::response = status + content_type + content_length + content;
+    std::string content_type = "Content-type:" + rep.headers[1].value;
+    std::string content_length = "Content-length:" + rep.headers[0].value;
+    std::string response = status + content_type + content_length + content;
     boost::asio::write(*sock, response);
 
 }

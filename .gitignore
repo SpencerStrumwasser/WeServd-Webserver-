@@ -35,6 +35,10 @@ webserver-tests
 out/
 .idea_modules/
 
+# Eclipse Files
+.project
+.cproject
+
 # Build files
 build
 

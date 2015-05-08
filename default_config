@@ -1,5 +1,4 @@
 server {
     port 8080;
-    static /cs3/WeServd/files
-    echo 
+    static /cs3/WeServd/files 
 }

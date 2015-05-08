@@ -70,6 +70,14 @@ void FileRequestHandler::handle_request(const request& req, reply& rep)
     char buf[512];
     while (is.read(buf, sizeof(buf)).gcount() > 0)
         rep.content.append(buf, is.gcount());
+    if(is.is_open()){
+        std::string line="";
+        while(getline(is,line))
+        {
+            content += line + "\n";
+        }
+        is.close();
+    }
     rep.headers.resize(2);
     rep.headers[0].name = "Content-Length";
     rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());

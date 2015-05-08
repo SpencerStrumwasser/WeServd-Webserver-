@@ -32,19 +32,27 @@ int main(int argc, char* argv[])
 
         // Print server address
         fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
-        
-        // TODO: move to option in config file
-        bool echo = false;
+
+        // Get server Type
+        ServerType::server_type type = parser_processor.get_server_type();
+
         // Create request handler depending on the option (echo or file handler)
-        if (!echo){
-            strmap *paths = parser_processor.get_paths();
-            for (auto it = paths->begin(); it != paths->end(); ++it){
-                FileRequestHandler fileRequestHandler(it->second);
-            } 
-        }
-        else {
-            EchoRequestHandler requestHandler(port);
-            requestHandler.launch();
+        switch(type)
+        {
+            case ServerType::file_server: {
+                strmap *paths = parser_processor.get_paths();
+                for (auto it = paths->begin(); it != paths->end(); ++it) {
+                    FileRequestHandler fileRequestHandler(it->second);
+                }
+                break;
+            }
+            case ServerType::echo_server: {
+                EchoRequestHandler requestHandler(port);
+                requestHandler.launch();
+                break;
+            }
+            default:
+                cerr << "Invalid server type." << endl;
         }
     }
     catch (std::exception& e) {

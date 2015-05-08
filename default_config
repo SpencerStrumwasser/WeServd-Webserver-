@@ -1,5 +1,14 @@
 server {
+    # Server port (1 - 65536, ports <1024 restricted to root)
     port 8080;
+    
+    # Type of server, currently supported types are: 
+    #   echo: Echoes any requests sent from the client
+    #   file: Serves files from the given locations
+    server_type file;
+
+    # File locations to serve files from for file handling server
+    # Must be prefixed
     location1 /static1/webserver_files/html;
     location2 /static2/webserver_files/image;
 }

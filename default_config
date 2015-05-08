@@ -1,3 +1,5 @@
 server {
     port 8080;
+    location1 /static1/cs3/WeServd/files;
+    location2 /static2/cs3/files;
 }

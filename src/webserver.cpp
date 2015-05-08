@@ -6,9 +6,7 @@
 #include <iostream>
 
 #include "parser/ParserProcessor.h"
-#include "server/FileRequestHandler.h"
-#include "server/EchoRequestHandler.h"
-
+#include "server/RequestHandler.h"
 static const char *server_domain = "http://localhost";
 
 int main(int argc, char* argv[])
@@ -33,27 +31,8 @@ int main(int argc, char* argv[])
         // Print server address
         fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
 
-        // Get server Type
-        ServerType::server_type type = parser_processor.get_server_type();
-
-        // Create request handler depending on the option (echo or file handler)
-        switch(type)
-        {
-            case ServerType::file_server: {
-                strmap *paths = parser_processor.get_paths();
-                for (auto it = paths->begin(); it != paths->end(); ++it) {
-                    FileRequestHandler fileRequestHandler(it->second);
-                }
-                break;
-            }
-            case ServerType::echo_server: {
-                EchoRequestHandler requestHandler(port);
-                requestHandler.launch();
-                break;
-            }
-            default:
-                cerr << "Invalid server type." << endl;
-        }
+        // Launch request handler
+        RequestHandler(port).launch();
     }
     catch (std::exception& e) {
         cerr << "Exception: " << e.what() << "\n";

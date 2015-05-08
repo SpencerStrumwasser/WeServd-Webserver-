@@ -10,11 +10,6 @@ const std::string NOT_FOUND("NOT FOUND");
 /* --- Config file value tokens --- */
 const std::string PORT_TOKEN("port");
 const std::string PATH_TOKEN("location");
-const std::string TYPE_TOKEN("server_type");
-
-/* --- Server Type Keywords --- */
-const std::string ECHO_TYPE("echo");
-const std::string FILE_TYPE("file");
 
 /* ----------------------- Public ----------------------- */
 
@@ -38,15 +33,6 @@ unsigned short ParserProcessor::get_port() {
     return (unsigned short)port;
 }
 
-ServerType::server_type ParserProcessor::get_server_type() {
-    // Get the statements from the config
-    statements parser_statements = this->config.statements_;
-    // Get server type string
-    std::string type_str = this->value_for_key(parser_statements, TYPE_TOKEN);
-
-    return this->type_from_string(type_str);
-}
-
 strmap *ParserProcessor::get_paths()
 {
     strmap *results = new strmap;
@@ -60,7 +46,8 @@ strmap *ParserProcessor::get_paths()
 /**
  * Gets the value from the statements for the given search key
  */
-std::string ParserProcessor::value_for_key(statements parser_statements, std::string key)
+std::string ParserProcessor::value_for_key(statements parser_statements,
+                                           std::string key)
 {
     // Flag specifying that the next token read will be the key value
     bool next_token_key_value = false;
@@ -146,7 +133,7 @@ strmap *ParserProcessor::values_like_key(statements parser_statements,
             }
 
             // Key string specifier
-            if (this->token_has_prefix(cur_token, prefix)) {
+            if (this->value_has_prefix(cur_token, prefix)) {
                 next_token_key_value = true;
                 prev_token_key = cur_token;
             }
@@ -166,26 +153,14 @@ strmap *ParserProcessor::values_like_key(statements parser_statements,
 /**
  * Check if the token has the given prefix string
  */
-bool ParserProcessor::token_has_prefix(std::string token, std::string prefix)
+bool ParserProcessor::value_has_prefix(std::string value,
+                                       std::string prefix)
 {
     // Check for prefix match
-    auto mismatch = std::mismatch(prefix.begin(), prefix.end(), token.begin());
+    auto mismatch = std::mismatch(prefix.begin(), prefix.end(), value.begin());
+
     if (mismatch.first == prefix.end())
         return true;
     else
         return false;
 }
-
-ServerType::server_type ParserProcessor::type_from_string(std::string str)
-{
-    using namespace ServerType;
-
-    if (str == FILE_TYPE)
-        return file_server;
-    else if (str == ECHO_TYPE)
-        return echo_server;
-    else
-        throw ParsedValueError("Invalid server type");
-}
-
-

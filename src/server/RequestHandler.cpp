@@ -48,6 +48,7 @@ void RequestHandler::session(socket_ptr sock)
         }
         else if (ParserProcessor::value_has_prefix(path, FILE_PREFIX))
             FileRequestHandler(path, sock).launch();
+        fprintf(stderr, "DEBUG: Static request type.\n\n");
         // Echo requests by default
         else {
             EchoRequestHandler(sock, data).launch();

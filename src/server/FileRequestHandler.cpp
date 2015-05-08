@@ -28,6 +28,22 @@ FileRequestHandler::FileRequestHandler(const std::string& doc_root,
 
 void FileRequestHandler::launch()
 {
+    std::ifstream content_stream;
+    content_stream.open(doc_root, std::ios::in | std::ios::binary);
+
+    char * buffer = new char[data_length];
+    std::string content;
+    while(content_stream.good()){
+        content_stream.read(buffer, data_length);
+        content += std::string(buffer, content_stream.gcount());
+
+    }
+// I dont know how to use the header we have and then add the file
+    std::string status = "HTTP/1.1 200 OK \n";
+    std::content_type = "Content-type:" + rep.headers[1].value;
+    std::content_length = "Content-length:" + rep.headers[0].value;
+    std::response = status + content_type + content_length + content;
+    boost::asio::write(*sock, response);
 
 }
 
@@ -80,14 +96,7 @@ void FileRequestHandler::handle_request(const request& req, reply& rep)
     char buf[512];
     while (is.read(buf, sizeof(buf)).gcount() > 0)
         rep.content.append(buf, is.gcount());
-    if(is.is_open()){
-        std::string line="";
-        while(getline(is,line))
-        {
-            content += line + "\n";
-        }
-        is.close();
-    }
+
     rep.headers.resize(2);
     rep.headers[0].name = "Content-Length";
     rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());

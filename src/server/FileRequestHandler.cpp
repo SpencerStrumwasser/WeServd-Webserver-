@@ -18,10 +18,20 @@
 #include "reply.h"
 #include "request.h"
 
-FileRequestHandler::FileRequestHandler(const std::string& doc_root)
-        : doc_root_(doc_root)
+FileRequestHandler::FileRequestHandler(const std::string& doc_root,
+                                       socket_ptr sock) : doc_root_(doc_root)
 {
+    this->sock = sock;
 }
+
+/* -------------------- Public -------------------- */
+
+void FileRequestHandler::launch()
+{
+
+}
+
+/* -------------------- Private -------------------- */
 
 void FileRequestHandler::handle_request(const request& req, reply& rep)
 {

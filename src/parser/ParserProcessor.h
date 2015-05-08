@@ -11,12 +11,6 @@
 
 typedef std::vector<std::shared_ptr<NginxConfigStatement>> statements;
 typedef std::unordered_map<std::string, std::string> strmap;
-namespace ServerType{
-    enum server_type {
-        echo_server = 1,
-        file_server = 2
-    };
-}
 
 class ParsedValueError: public std::exception {
 private:
@@ -38,13 +32,14 @@ public:
      */
     unsigned short get_port();
     /**
-     * Gets the type of server
-     */
-    ServerType::server_type get_server_type();
-    /**
      * Gets the paths from the parsed configuration
      */
     strmap *get_paths();
+
+    /**
+     * Check whether the value has the given prefix
+     */
+    static bool value_has_prefix(std::string value, std::string prefix);
 
 private:
     NginxConfig config;
@@ -52,10 +47,6 @@ private:
     std::string value_for_key(statements parser_statements, std::string key);
     strmap *values_like_key(statements parser_statements, std::string prefix,
                             strmap *results);
-
-    bool token_has_prefix(std::string token, std::string prefix);
-    ServerType::server_type type_from_string(std::string str);
-
 };
 
 

@@ -62,8 +62,8 @@ std::string ParserProcessor::value_for_key(statements parser_statements, std::st
  * the values for those keys.
  */
 strmap *ParserProcessor::values_like_key(statements parser_statements,
-                                            std::string prefix,
-                                            strmap *results)
+                                         std::string prefix,
+                                         strmap *results)
 {
     // Flag specifying that the next token read will be the key value
     bool next_token_key_value = false;
@@ -95,7 +95,7 @@ strmap *ParserProcessor::values_like_key(statements parser_statements,
             // Last token read was the key specifier
             if (next_token_key_value) {
                 // Store the found value
-                results->insert({prev_token_key, cur_token});
+                results->insert({{prev_token_key, cur_token}});
                 // Clear the values
                 next_token_key_value = false;
                 prev_token_key = "";
@@ -108,11 +108,15 @@ strmap *ParserProcessor::values_like_key(statements parser_statements,
             }
         }
     }
+
     // No tokens found
-    if (!next_token_key_value)
+    if (results->empty()) {
+        delete results;
         return NULL;
+    }
     else
         return results;
+
 }
 
 /**
@@ -128,14 +132,14 @@ bool ParserProcessor::token_has_prefix(std::string token, std::string prefix)
         return false;
 }
 
-#pragma mark - Public
+/* ----------------------- Public ----------------------- */
 
 strmap *ParserProcessor::get_paths()
 {
-    strmap results;
+    strmap *results = new strmap;
     // Get the statements from the config
     statements parser_statements = this->config.statements_;
-    return this->values_like_key(parser_statements, PATH_TOKEN, &results);
+    return this->values_like_key(parser_statements, PATH_TOKEN, results);
 }
 
 unsigned short ParserProcessor::get_port() {

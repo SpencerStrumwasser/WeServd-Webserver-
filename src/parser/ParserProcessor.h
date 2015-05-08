@@ -12,7 +12,6 @@
 typedef std::vector<std::shared_ptr<NginxConfigStatement>> statements;
 
 typedef std::unordered_map<std::string, std::string> strmap;
-typedef std::pair<std::string, std::string> strpair;
 
 class ParsedValueError: public std::exception {
 private:

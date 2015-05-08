@@ -21,7 +21,7 @@ ifeq ($(OS), Linux)
 	CC=g++
 	CFLAGS=-g -Wall -std=c++0x
 	BOOST_FLAGS=-lboost_system -lboost_thread
-	TEST_FLAGS=-std=c++0x 
+	TEST_FLAGS=-g -std=c++0x 
 endif
 ifeq ($(OS), Darwin)
 	CC=clang++

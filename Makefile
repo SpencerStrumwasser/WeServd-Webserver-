@@ -39,7 +39,7 @@ all: directories webserver
 directories:
 	mkdir -p build
 
-# ----- Source files ----- #
+# --------------- Source files --------------- #
 
 # -- Parser Files -- #
 
@@ -60,6 +60,10 @@ echo-request-handler.o:
 	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) \
 	-o $(BUILD)/echo-request-handler.o
 
+request-handler.o: 
+	$(CC) -c $(SERVER)/RequestHandler.cpp $(CFLAGS) \
+	-o $(BUILD)/request-handler.o
+
 mime-types.o:
 	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
 
@@ -69,17 +73,19 @@ reply.o:
 # -- Server -- #
 
 webserver: parser-processor.o config-parser.o echo-request-handler.o \
-		   file-request-handler.o mime-types.o reply.o
+		   file-request-handler.o request-handler.o mime-types.o reply.o
 	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
 	$(BUILD)/echo-request-handler.o $(BUILD)/file-request-handler.o \
-	$(BUILD)/mime-types.o $(BUILD)/reply.o $(SRC)/webserver.cpp \
-	$(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
+	$(BUILD)/request-handler.o $(BUILD)/mime-types.o $(BUILD)/reply.o \
+	$(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
+# Run the server using the default configuration
 run: all
 	./webserver default_config
 
 
-# Test files
+# --------------- Test files --------------- #
+
 test: directories all-tests
 	./$(TESTS_NAME)
 
@@ -111,7 +117,7 @@ all-tests: libgtest.a parser-tests.o parser-processor-tests.o
 	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME) 
 
 
-# Cleaning
+# --------------- Cleaning --------------- #
 
 # Not actual created files, phony files
 .PHONY: clean clean-general clean-parser

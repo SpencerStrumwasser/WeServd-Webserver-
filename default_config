@@ -3,7 +3,7 @@ server {
     port 8080;
 
     # File locations to serve files from for file handling server
-    # Must be prefixed with location and followed by any identifier
+    # Must have static prefix in the name
     static1 webserver_files/html/;
     static2 webserver_files/image/;
 }

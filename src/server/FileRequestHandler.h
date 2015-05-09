@@ -9,6 +9,7 @@
 #define WESERVD_FILEREQUESTHANDLER_H
 
 #include <boost/noncopyable.hpp>
+#include <boost/asio.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
 #include <unordered_map>

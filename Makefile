@@ -64,6 +64,9 @@ request-handler.o:
 	$(CC) -c $(SERVER)/RequestHandler.cpp $(CFLAGS) \
 	-o $(BUILD)/request-handler.o
 
+mime-types.o:
+	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
+
 reply.o:
 	$(CC) -c $(SERVER)/reply.cpp $(CFLAGS) -o $(BUILD)/reply.o
 

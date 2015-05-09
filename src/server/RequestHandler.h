@@ -32,7 +32,6 @@ private:
     void session(socket_ptr sock);
 
     std::string get_request_path(std::string);
-    bool path_matches(std::string path, std::string req_path);
 };
 
 

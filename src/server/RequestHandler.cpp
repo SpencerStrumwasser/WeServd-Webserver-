@@ -3,6 +3,7 @@
 //
 
 #include "RequestHandler.h"
+#include "../parser/ParserProcessor.h"
 #include "FileRequestHandler.h"
 #include "EchoRequestHandler.h"
 #include "reply.h"
@@ -93,7 +94,6 @@ void RequestHandler::server(boost::asio::io_service& io_service,
 
 
 /* --- Helper Functions --- */
-
 
 /**
  * Get the path from the given request string

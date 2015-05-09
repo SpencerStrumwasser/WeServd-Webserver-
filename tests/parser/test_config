@@ -3,7 +3,7 @@ foo "bar";
 server {
   port   8080;
   server_name foo.com;
-  location1 /static/images;
-  location2 /static/videos;
-  location3 /static/htmls;
+  static1 /images;
+  static2 /videos;
+  static3 /htmls;
 }

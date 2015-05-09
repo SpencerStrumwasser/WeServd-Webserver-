@@ -31,8 +31,11 @@ int main(int argc, char* argv[])
         // Print server address
         fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
 
+        // Get static locations from parsed configuration file
+        strmap *locations = parser_processor.get_paths();
+
         // Launch request handler
-        RequestHandler(port).launch();
+        RequestHandler(port, locations).launch();
     }
     catch (std::exception& e) {
         cerr << "Exception: " << e.what() << "\n";

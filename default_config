@@ -4,6 +4,6 @@ server {
 
     # File locations to serve files from for file handling server
     # Must be prefixed with location and followed by any identifier
-    location1 /static1/webserver_files/html;
-    location2 /static2/webserver_files/image;
+    static1 webserver_files/html/;
+    static2 webserver_files/image/;
 }

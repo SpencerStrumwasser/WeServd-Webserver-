@@ -4,23 +4,36 @@
 // FileRequestHandler.cpp
 // ~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+// Based on WTFIAWS request_handler.cpp
 //
 
 #include "FileRequestHandler.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
-#include <boost/lexical_cast.hpp>
-#include "MimeTypes.h"
+#include <vector>
+#include <iostream>
+
 #include "reply.h"
 #include "request.h"
 
-FileRequestHandler::FileRequestHandler(const std::string& doc_root,
-                                       socket_ptr sock) : doc_root_(doc_root)
+std::unordered_map<std::string, std::string> mime_types = {
+        { "gif", "image/gif" },
+        { "htm", "text/html" },
+        { "html", "text/html" },
+        { "jpg", "image/jpeg" },
+        { "png", "image/png" }
+};
+
+FileRequestHandler::FileRequestHandler(const std::string request,
+                                       const std::string location,
+                                       const std::string path,
+                                       socket_ptr sock)
 {
+    this->request = request;
+    this->path = path;
+    this->location = location;
     this->sock = sock;
 }
 
@@ -28,53 +41,64 @@ FileRequestHandler::FileRequestHandler(const std::string& doc_root,
 
 void FileRequestHandler::launch()
 {
+<<<<<<< HEAD
     
+=======
+    std::string response = get_response(this->request);
+    try
+    {
+        // Echo the request header
+        boost::asio::write(*sock, boost::asio::buffer(response.c_str(),
+                                                      response.size()));
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Exception in thread: " << e.what() << "\n";
+    }
+>>>>>>> f56a9d892503965c3998f9594c29c8e7cf171fd7
 }
 
 /* -------------------- Private -------------------- */
 
-void FileRequestHandler::handle_request(const request& req, reply& rep)
-{
-    // Decode url to path.
-    std::string request_path;
-    if (!url_decode(req.uri, request_path))
-    {
-        rep = reply::stock_reply(reply::bad_request);
-        return;
+std::string FileRequestHandler::get_response(std::string request) {
+    std::string req_type;
+    std::string req_path;
+    std::stringstream ss(request);
+
+    ss >> req_type >> req_path;
+
+    printf("DEBUG: Serving file: %s\n", req_path.c_str());
+
+    // Remove the part corresponding to the path that says we want static
+    // serving
+    req_path.erase(0, location.length());
+    // Now insert the base path that we want to go to
+    req_path.insert(0, path);
+
+    // Determine mime type
+    std::string mime_type;
+    std::vector<std::string> splits;
+    boost::split(splits, req_path, boost::is_any_of("."));
+    std::string extension = splits.back();
+    if(mime_types.count(extension) == 0) {
+        // we don't know a mime-type for this extension
+        mime_type = "text/plain";
+    } else {
+        mime_type = mime_types[splits.back()];
     }
 
-    // Request path must be absolute and not contain "..".
-    if (request_path.empty() || request_path[0] != '/'
-        || request_path.find("..") != std::string::npos)
+    // Read file into string
+    std::ifstream t(req_path.c_str());
+    // Test for 400 error
+    if (!t)
     {
-        rep = reply::stock_reply(reply::bad_request);
-        return;
+        return status_strings::not_found;
     }
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    std::string content = buffer.str();
 
-    // If path ends in slash (i.e. is a directory) then add "index.html".
-    if (request_path[request_path.size() - 1] == '/')
-    {
-        request_path += "index.html";
-    }
-
-    // Determine the file extension.
-    std::size_t last_slash_pos = request_path.find_last_of("/");
-    std::size_t last_dot_pos = request_path.find_last_of(".");
-    std::string extension;
-    if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos)
-    {
-        extension = request_path.substr(last_dot_pos + 1);
-    }
-
-    // Open the file to send back.
-    std::string full_path = doc_root_ + request_path;
-    std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
-    if (!is)
-    {
-        rep = reply::stock_reply(reply::not_found);
-        return;
-    }
-
+<<<<<<< HEAD
     // Fill out the reply to be sent to the client.
     rep.status = reply::ok;
     char buf[512];
@@ -87,42 +111,19 @@ void FileRequestHandler::handle_request(const request& req, reply& rep)
     rep.headers[1].name = "Content-Type";
     rep.headers[1].value = mime_types::extension_to_type(extension);
 }
-
-bool FileRequestHandler::url_decode(const std::string& in, std::string& out)
-{
-    out.clear();
-    out.reserve(in.size());
-    for (std::size_t i = 0; i < in.size(); ++i)
-    {
-        if (in[i] == '%')
-        {
-            if (i + 3 <= in.size())
-            {
-                int value = 0;
-                std::istringstream is(in.substr(i + 1, 2));
-                if (is >> std::hex >> value)
-                {
-                    out += static_cast<char>(value);
-                    i += 2;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else if (in[i] == '+')
-        {
-            out += ' ';
-        }
-        else
-        {
-            out += in[i];
-        }
+=======
+    // Fill out the header to be written to the connection.
+    std::string status = status_strings::ok;
+    std::vector<header> headers;
+    headers.push_back((header){ "Content-Length", std::to_string(content.size()) });
+    headers.push_back((header){ "Content-Type", mime_type }); // should be actual mime-type later
+    std::string response = status;
+    // Loop over headers and concatenate them
+    for(unsigned int i = 0; i < headers.size(); i++) {
+        response = response + headers[i].name + ": " + headers[i].value + "\r\n";
     }
-    return true;
+    response += "\r\n" + content;
+>>>>>>> f56a9d892503965c3998f9594c29c8e7cf171fd7
+
+    return response;
 }

@@ -68,7 +68,7 @@ TEST(ParserProcessorTest, GetPortFile)
 TEST(ParserProcessorTest, GetPath1)
 {
     // Parse a mocked input
-    const std::string config_text("location1 /static/files;");
+    const std::string config_text("static1 /files;");
     std::stringstream config_stream(config_text);
     NginxConfigParser parser;
     NginxConfig config;
@@ -82,7 +82,7 @@ TEST(ParserProcessorTest, GetPath1)
     if (paths == NULL)
         FAIL() << "No paths found by get_paths()";
 
-    strmap expected_values({{"location1", "/static/files"}});
+    strmap expected_values({{"static1", "/files"}});
     EXPECT_EQ(*paths, expected_values);
 }
 
@@ -92,8 +92,8 @@ TEST(ParserProcessorTest, GetPath1)
 TEST(ParserProcessorTest, GetPath2)
 {
     // Parse a mocked input
-    const std::string config_text("location1 /static/videos;\n\n"
-                                  "location2 /static/images;\n\n");
+    const std::string config_text("static1 /videos;\n\n"
+                                  "static2 /images;\n\n");
     std::stringstream config_stream(config_text);
     NginxConfigParser parser;
     NginxConfig config;
@@ -107,8 +107,8 @@ TEST(ParserProcessorTest, GetPath2)
     if (paths == NULL)
         FAIL() << "No paths found by get_paths()";
 
-    strmap expected_values({{"location1", "/static/videos"},
-                            {"location2", "/static/images"}});
+    strmap expected_values({{"static1", "/videos"},
+                            {"static2", "/images"}});
     EXPECT_EQ(*paths, expected_values);
 }
 
@@ -131,9 +131,9 @@ TEST(ParserProcessorTest, GetPathsFile)
     if (paths == NULL)
         FAIL() << "No paths found by get_paths()";
 
-    strmap expected_values({{"location1", "/static/images"},
-                            {"location2", "/static/videos"},
-                            {"location3", "/static/htmls"}});
+    strmap expected_values({{"static1", "/images"},
+                            {"static2", "/videos"},
+                            {"static3", "/htmls"}});
     EXPECT_EQ(*paths, expected_values);
 }
 

@@ -9,7 +9,7 @@ const std::string NOT_FOUND("NOT FOUND");
 
 /* --- Config file value tokens --- */
 const std::string PORT_TOKEN("port");
-const std::string PATH_TOKEN("location");
+const std::string PATH_TOKEN("static");
 
 /* ----------------------- Public ----------------------- */
 

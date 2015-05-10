@@ -73,10 +73,10 @@ reply.o:
 # -- Server -- #
 
 webserver: parser-processor.o config-parser.o echo-request-handler.o \
-		   file-request-handler.o request-handler.o mime-types.o reply.o
+		   file-request-handler.o request-handler.o reply.o
 	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
 	$(BUILD)/echo-request-handler.o $(BUILD)/file-request-handler.o \
-	$(BUILD)/request-handler.o $(BUILD)/mime-types.o $(BUILD)/reply.o \
+	$(BUILD)/request-handler.o $(BUILD)/reply.o \
 	$(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
 # Run the server using the default configuration

@@ -1,5 +1,5 @@
 //
-// request_handler.h
+// FileRequestHandler.h
 // ~~~~~~~~~~~~~~~~~~~
 //
 // Based on WTFIAWS request_handler.h
@@ -8,16 +8,12 @@
 #ifndef WESERVD_FILEREQUESTHANDLER_H
 #define WESERVD_FILEREQUESTHANDLER_H
 
-#include <boost/noncopyable.hpp>
-#include <boost/asio.hpp>
-#include <boost/smart_ptr.hpp>
-#include <boost/asio.hpp>
 #include <unordered_map>
+#include "RequestHandler.h"
 
 struct reply;
 struct request;
 
-typedef boost::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr;
 typedef std::unordered_map<std::string, std::string> strmap;
 
 namespace status_strings {
@@ -25,31 +21,27 @@ namespace status_strings {
     const std::string not_found = "HTTP/1.0 404 Not Found\r\n\r\nFile Not Found\r\n";
 }
 
-/// The common handler for all incoming requests.
-class FileRequestHandler : private boost::noncopyable
+class FileRequestHandler : RequestHandler
 {
 public:
     /**
      * Construct with a directory containing files to be served.
      */
-    FileRequestHandler(const std::string request, const std::string location,
-                       const std::string path, socket_ptr sock);
+    FileRequestHandler(socket_ptr sock,
+                       const std::string request,
+                       const std::string location_name,
+                       const std::string location);
     /**
-     * Get Response to the given request
+     * Respond to the request
      */
-    std::string get_response(std::string request);
-
-    bool path_matches(std::string req_path);
-
-    void launch();
-
+    void respond();
 private:
-    std::string request;
-    std::string path;
+    // Location name from config file (i.e. static1, static2, etc.)
+    std::string location_name;
+    // Location corresponding to the location name
     std::string location;
 
-    // Socket to serve request to
-    socket_ptr sock;
+    std::string get_response();
 };
 
 #endif // WESERVD_FILEREQUESTHANDLER_H

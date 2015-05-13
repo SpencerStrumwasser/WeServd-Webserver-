@@ -52,17 +52,21 @@ parser-processor.o:
 
 # -- Server Files -- #
 
-file-request-handler.o: 
-	$(CC) -c $(SERVER)/FileRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/file-request-handler.o
-
-echo-request-handler.o:
-	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) \
-	-o $(BUILD)/echo-request-handler.o
+server.o:
+	$(CC) -c $(SERVER)/Server.cpp $(CFLAGS) -I $(SERVER) \
+	-o $(BUILD)/server.o
 
 request-handler.o: 
 	$(CC) -c $(SERVER)/RequestHandler.cpp $(CFLAGS) \
 	-o $(BUILD)/request-handler.o
+
+file-request-handler.o: 
+	$(CC) -c $(SERVER)/FileRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
+	-o $(BUILD)/file-request-handler.o
+
+echo-request-handler.o: 
+	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
+	-o $(BUILD)/echo-request-handler.o
 
 mime-types.o:
 	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
@@ -72,12 +76,12 @@ reply.o:
 
 # -- Server -- #
 
-webserver: parser-processor.o config-parser.o echo-request-handler.o \
-		   file-request-handler.o request-handler.o reply.o
+webserver: parser-processor.o config-parser.o server.o reply.o \
+		   file-request-handler.o echo-request-handler.o request-handler.o
 	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
-	$(BUILD)/echo-request-handler.o $(BUILD)/file-request-handler.o \
-	$(BUILD)/request-handler.o $(BUILD)/reply.o \
-	$(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
+	$(BUILD)/server.o $(BUILD)/file-request-handler.o \
+	$(BUILD)/echo-request-handler.o $(BUILD)/request-handler.o \
+	$(BUILD)/reply.o $(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
 
 # Run the server using the default configuration
 run: all

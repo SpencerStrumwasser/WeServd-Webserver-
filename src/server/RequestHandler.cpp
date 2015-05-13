@@ -51,15 +51,7 @@ void RequestHandler::session(socket_ptr sock)
             fprintf(stderr, "DEBUG: Echoing request.\n\n");
             return;
         }
-<<<<<<< HEAD
-        else if (ParserProcessor::value_has_prefix(path, FILE_PREFIX))
-            FileRequestHandler(path, sock).launch();
-        fprintf(stderr, "DEBUG: Static request type.\n\n");
-        // Echo requests by default
-        else {
-            EchoRequestHandler(sock, data).launch();
-            fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
-=======
+
         // File request
         else if (ParserProcessor::value_has_prefix(path, FILE_PREFIX)) {
             for (auto it = this->locations->begin();
@@ -73,7 +65,7 @@ void RequestHandler::session(socket_ptr sock)
                     return;
                 }
             }
->>>>>>> f56a9d892503965c3998f9594c29c8e7cf171fd7
+
         }
 
         // 404 ERROR if we reach here

@@ -41,9 +41,7 @@ FileRequestHandler::FileRequestHandler(const std::string request,
 
 void FileRequestHandler::launch()
 {
-<<<<<<< HEAD
-    
-=======
+
     std::string response = get_response(this->request);
     try
     {
@@ -55,7 +53,6 @@ void FileRequestHandler::launch()
     {
         std::cerr << "Exception in thread: " << e.what() << "\n";
     }
->>>>>>> f56a9d892503965c3998f9594c29c8e7cf171fd7
 }
 
 /* -------------------- Private -------------------- */
@@ -98,20 +95,6 @@ std::string FileRequestHandler::get_response(std::string request) {
     buffer << t.rdbuf();
     std::string content = buffer.str();
 
-<<<<<<< HEAD
-    // Fill out the reply to be sent to the client.
-    rep.status = reply::ok;
-    char buf[512];
-    while (is.read(buf, sizeof(buf)).gcount() > 0)
-        rep.content.append(buf, is.gcount());
-
-    rep.headers.resize(2);
-    rep.headers[0].name = "Content-Length";
-    rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());
-    rep.headers[1].name = "Content-Type";
-    rep.headers[1].value = mime_types::extension_to_type(extension);
-}
-=======
     // Fill out the header to be written to the connection.
     std::string status = status_strings::ok;
     std::vector<header> headers;
@@ -123,7 +106,6 @@ std::string FileRequestHandler::get_response(std::string request) {
         response = response + headers[i].name + ": " + headers[i].value + "\r\n";
     }
     response += "\r\n" + content;
->>>>>>> f56a9d892503965c3998f9594c29c8e7cf171fd7
 
     return response;
 }

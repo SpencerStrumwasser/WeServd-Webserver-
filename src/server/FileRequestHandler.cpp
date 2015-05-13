@@ -64,9 +64,9 @@ std::string FileRequestHandler::get_response() {
     std::stringstream ss(this->request);
 
     ss >> req_type >> req_path;
-
-    printf("DEBUG: Serving file: %s\n", req_path.c_str());
-
+    #ifdef DEBUG
+        printf("DEBUG: Serving file: %s\n", req_path.c_str());
+    #endif
     // Remove the part corresponding to the location that says we want static..
     req_path.erase(0, this->location_name.length());
     // Now insert the base location that we want to go to

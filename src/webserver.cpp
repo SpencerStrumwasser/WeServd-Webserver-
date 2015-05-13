@@ -8,6 +8,7 @@
 #include "parser/ParserProcessor.h"
 #include "server/Server.h"
 
+#define DEBUG
 
 static const char *server_domain = "http://localhost";
 

@@ -22,6 +22,7 @@ void Server::launch()
 
 void Server::session(socket_ptr sock)
 {
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
     try
     {
         char data[max_length];
@@ -39,7 +40,9 @@ void Server::session(socket_ptr sock)
 
         // Echo request
         if (ParserProcessor::value_has_prefix(path, ECHO_PREFIX)) {
-            fprintf(stderr, "DEBUG: Echoing request.\n\n");
+            #ifdef DEBUG
+                fprintf(stderr, "DEBUG: Echoing request.\n\n");
+            #endif
             EchoRequestHandler(sock, request).respond();
             return;
         }
@@ -61,7 +64,9 @@ void Server::session(socket_ptr sock)
         }
 
         // 404 ERROR if we reach here
-        fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
+        #ifdef DEBUG
+            fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
+        #endif
         reply not_found = reply::stock_reply(reply::status_type::not_found);
         RequestHandler(sock, request).send_response(not_found.content,
                                                     not_found.content.length());
@@ -78,12 +83,39 @@ void Server::server(boost::asio::io_service& io_service,
     using namespace boost::asio::ip;
     // Accept incoming connections
     tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
-    while(true)
-    {
-        socket_ptr sock(new tcp::socket(io_service));
-        a.accept(*sock);
-        boost::thread t(boost::bind(&Server::session, this, sock));
+    try {
+        // Start a thread that checks if the user entered q to quit the
+        // program in that case
+        boost::thread q(boost::bind(&Server::end, this));
+        while(true)
+        {
+            socket_ptr sock(new tcp::socket(io_service));
+            a.accept(*sock);
+            boost::thread t(boost::bind(&Server::session, this, sock));
+        }
     }
+    catch(std::exception& e) {
+        printf("\n\n\nCaught exception\n\n\n");
+
+    }
+}
+
+/**
+ * Throws an ExitErrorException which should be caught to quit all
+ * server threads.
+ */
+void Server::end()
+{
+    std::string quit;
+    while (quit != "q")
+    {
+        printf("Enter q to quit the server: ");
+        // Release control to server
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+        std::cin >> quit;
+    }
+    // If we reach here, the user entered "q"
+    throw ExitServerException();
 }
 
 /* --- Helper Functions --- */

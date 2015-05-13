@@ -21,17 +21,22 @@ typedef boost::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr;
 
 class RequestHandler {
 public:
-    RequestHandler(unsigned short port, strmap *locations);
-    void launch();
+    RequestHandler();
+    RequestHandler(socket_ptr sock, std::string request);
+    /**
+     * Respond to the request
+     */
+    virtual void respond() {};
+    /**
+     * Sends the response with the specified length via the handler's socket.
+     */
+    void send_response(std::string response, size_t length);
 
-private:
-    unsigned short port;
-    strmap *locations;
-
-    void server(boost::asio::io_service& io_service, unsigned short port);
-    void session(socket_ptr sock);
-
-    std::string get_request_path(std::string);
+protected:
+    // Socket for this request handler
+    socket_ptr sock;
+    // Request sent to the handler
+    std::string request;
 };
 
 

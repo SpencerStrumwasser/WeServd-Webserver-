@@ -6,7 +6,10 @@
 #include <iostream>
 
 #include "parser/ParserProcessor.h"
-#include "server/RequestHandler.h"
+#include "server/Server.h"
+
+#define DEBUG
+
 static const char *server_domain = "http://localhost";
 
 int main(int argc, char* argv[])
@@ -34,8 +37,8 @@ int main(int argc, char* argv[])
         // Get static locations from parsed configuration file
         strmap *locations = parser_processor.get_paths();
 
-        // Launch request handler
-        RequestHandler(port, locations).launch();
+        // Launch server
+        Server(port, locations).launch();
     }
     catch (std::exception& e) {
         cerr << "Exception: " << e.what() << "\n";

@@ -26,28 +26,31 @@ std::unordered_map<std::string, std::string> mime_types = {
         { "png", "image/png" }
 };
 
-FileRequestHandler::FileRequestHandler(const std::string request,
-                                       const std::string location,
-                                       const std::string path,
-                                       socket_ptr sock)
+FileRequestHandler::FileRequestHandler(socket_ptr sock,
+                                       const std::string request,
+                                       const std::string location_name,
+                                       const std::string location):
+        RequestHandler(sock, request)
 {
-    this->request = request;
-    this->path = path;
+    // Initialize subclass variables
+    this->location_name = location_name;
     this->location = location;
-    this->sock = sock;
 }
 
 /* -------------------- Public -------------------- */
 
-void FileRequestHandler::launch()
+void FileRequestHandler::respond()
 {
+<<<<<<< HEAD
 
     std::string response = get_response(this->request);
+=======
+    std::string response = this->get_response();
+>>>>>>> 2e886aba5b528f4e25f1fe35280d8616940ecc68
     try
     {
-        // Echo the request header
-        boost::asio::write(*sock, boost::asio::buffer(response.c_str(),
-                                                      response.size()));
+        // Send the file response
+        this->send_response(response, response.length());
     }
     catch (std::exception& e)
     {
@@ -57,38 +60,40 @@ void FileRequestHandler::launch()
 
 /* -------------------- Private -------------------- */
 
-std::string FileRequestHandler::get_response(std::string request) {
+/**
+ * Get Response to the given request
+ */
+std::string FileRequestHandler::get_response() {
     std::string req_type;
     std::string req_path;
-    std::stringstream ss(request);
+    std::stringstream ss(this->request);
 
     ss >> req_type >> req_path;
-
-    printf("DEBUG: Serving file: %s\n", req_path.c_str());
-
-    // Remove the part corresponding to the path that says we want static
-    // serving
-    req_path.erase(0, location.length());
-    // Now insert the base path that we want to go to
-    req_path.insert(0, path);
+    #ifdef DEBUG
+        printf("DEBUG: Serving file: %s\n", req_path.c_str());
+    #endif
+    // Remove the part corresponding to the location that says we want static..
+    req_path.erase(0, this->location_name.length());
+    // Now insert the base location that we want to go to
+    req_path.insert(0, this->location);
 
     // Determine mime type
     std::string mime_type;
     std::vector<std::string> splits;
     boost::split(splits, req_path, boost::is_any_of("."));
     std::string extension = splits.back();
-    if(mime_types.count(extension) == 0) {
+    if (mime_types.count(extension) == 0) {
         // we don't know a mime-type for this extension
         mime_type = "text/plain";
-    } else {
+    }
+    else {
         mime_type = mime_types[splits.back()];
     }
 
     // Read file into string
     std::ifstream t(req_path.c_str());
     // Test for 400 error
-    if (!t)
-    {
+    if (!t) {
         return status_strings::not_found;
     }
     std::stringstream buffer;

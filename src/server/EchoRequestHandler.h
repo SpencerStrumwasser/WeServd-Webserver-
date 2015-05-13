@@ -7,17 +7,15 @@
 
 #include "RequestHandler.h"
 
-class EchoRequestHandler {
+class EchoRequestHandler : RequestHandler {
 public:
-    EchoRequestHandler(socket_ptr sock, std::string echo);
-    void launch();
+    EchoRequestHandler(socket_ptr sock, const std::string request);
+    /**
+     * Respond to the request
+     */
+    void respond();
 
 private:
-    socket_ptr sock;
-    std::string echo;
-
-    void server(boost::asio::io_service& io_service, unsigned short port);
-    static void session(socket_ptr sock);
     static std::string format_range(const std::string& format_string,
                                     const std::vector<std::string>& args);
 };

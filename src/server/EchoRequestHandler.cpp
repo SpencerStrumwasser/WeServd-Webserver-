@@ -6,14 +6,16 @@
 
 using boost::asio::ip::tcp;
 
-EchoRequestHandler::EchoRequestHandler(socket_ptr sock, std::string echo) {
-    this->sock = sock;
-    this->echo = echo;
+EchoRequestHandler::EchoRequestHandler(socket_ptr sock,
+                                       const std::string request):
+        RequestHandler(sock, request)
+{
+    // No-op
 }
 
 /* -------------------- Public -------------------- */
 
-void EchoRequestHandler::launch()
+void EchoRequestHandler::respond()
 {
     try
     {
@@ -22,14 +24,13 @@ void EchoRequestHandler::launch()
                                                 "<html><body>%s</body></html>");
         // Make an arguments array to pass into the response string
         std::vector<std::string> args;
-        args.push_back(this->echo);
+        args.push_back(this->request);
 
         // Format the response string using the request header
         std::string response_str = format_range(response_str_format, args);
 
-        // Echo the request header
-        boost::asio::write(*sock, boost::asio::buffer(response_str.c_str(),
-                                                      response_str.size()));
+        // Send response string
+        this->send_response(response_str, response_str.length());
     }
     catch (std::exception& e)
     {

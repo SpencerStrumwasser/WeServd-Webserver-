@@ -7,6 +7,7 @@
 
 #include <exception>
 #include <unordered_map>
+#include <vector>
 #include "ConfigParser.h"
 
 typedef std::vector<std::shared_ptr<NginxConfigStatement>> statements;
@@ -26,15 +27,18 @@ public:
 
 class ParserProcessor {
 public:
+    /** Constructor */
     ParserProcessor(NginxConfig config);
-    /**
-     * Gets the port from the parsed configuration
-     */
+
+    /** Gets the port from the parsed configuration */
     unsigned short get_port();
-    /**
-     * Gets the paths from the parsed configuration
-     */
-    strmap *get_paths();
+
+    /** Gets the static handlers from the parsed configuration */
+    strmap *get_static_handlers();
+    /** Gets the echo handlers from the parsed configuration */
+    std::vector<std::string> *get_echo_handlers();
+    /** Gets the hello world handlers from the parsed configuration */
+    std::vector<std::string> *get_helloworld_handlers();
 
     /**
      * Check whether the value has the given prefix
@@ -45,6 +49,8 @@ private:
     NginxConfig config;
 
     std::string value_for_key(statements parser_statements, std::string key);
+    void values_for_key(statements parser_statements, std::string key,
+                        std::vector<std::string> *results);
     strmap *values_like_key(statements parser_statements, std::string prefix,
                             strmap *results);
 };

@@ -35,7 +35,11 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
 
         // Get static locations from parsed configuration file
-        strmap *locations = parser_processor.get_paths();
+        strmap *locations = parser_processor.get_static_handlers();
+        std::vector<std::string> *hello_locations =
+                parser_processor.get_helloworld_handlers();
+        std::vector<std::string> *echo_locations =
+                parser_processor.get_echo_handlers();
 
         // Launch server
         Server(port, locations).launch();

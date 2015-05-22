@@ -223,9 +223,10 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
     last_token_type = token_type;
   }
 
-  printf ("Bad transition from %s to %s\n",
-          TokenTypeAsString(last_token_type),
-          TokenTypeAsString(token_type));
+  if (this->debug)
+    printf ("Bad transition from %s to %s\n",
+            TokenTypeAsString(last_token_type),
+            TokenTypeAsString(token_type));
   return false;
 }
 

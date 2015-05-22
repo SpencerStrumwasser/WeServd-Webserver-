@@ -1,9 +1,33 @@
-server {
-    # Server port (1 - 65536, ports <1024 restricted to root)
-    port 8080;
+# Expected config file format. Unlike the RequestHandler API, this format was
+# not decided based on a vote :).
+#
+# Keywords:
+#   . listen
+#   . handler
+#   . static
+#   . echo
+#   . helloworld
+#   . placeholder : used to prevent an empty block from being ignored [BUG]
+#   . <any other handlers you create>
+#   . <any keywords defined by handlers> (e.g. root)
 
-    # File locations to serve files from for file handling server
-    # Must have static prefix in the name
-    static1 webserver_files/html/;
-    static2 webserver_files/image/;
+listen 1337;
+
+handler static /images {
+  root webserver_files/images/;
 }
+
+handler echo /copycat {
+    placeholder;
+}
+
+handler static /html {
+  root webserver_files/html/;
+}
+
+handler helloworld /hw2 {
+    placeholder;
+}
+
+
+

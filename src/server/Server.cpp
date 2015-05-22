@@ -51,9 +51,10 @@ void Server::session(socket_ptr sock)
             // Check all defined static locations
             for (auto it = this->locations->begin();
                  it != this->locations->end(); ++it) {
-                // Add slashes to location name in string map
+                // Make path in string map look like request path
+                std::string prefix("/static");
                 std::string slash("/");
-                std::string location_name_slash = slash + it->first + slash;
+                std::string location_name_slash = prefix + it->first + slash;
                 // Check if this is the static path desired
                 if (ParserProcessor::value_has_prefix(path, location_name_slash)) {
                     FileRequestHandler(sock, request, location_name_slash,

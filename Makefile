@@ -7,7 +7,7 @@ TESTS_NAME=$(NAME)-tests
 
 # Source variables
 SRC=src
-BUILD=build
+BUILD:=build
 PARSER=$(SRC)/parser
 SERVER=$(SRC)/server
 
@@ -26,7 +26,7 @@ ifeq ($(OS), Linux)
 endif
 ifeq ($(OS), Darwin)
 	CC=clang++
-	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++ 
+	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++
 	BOOST_FLAGS=-lboost_system -lboost_thread-mt
 	TEST_FLAGS=-std=c++11 -stdlib=libc++
 	CLEAN=*.dSYM 
@@ -43,45 +43,39 @@ directories:
 
 # -- Parser Files -- #
 
-config-parser.o:
-	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/config-parser.o
+$(BUILD)/config-parser.o:
+	$(CC) $(CFLAGS) -c $(PARSER)/ConfigParser.cpp
 
-parser-processor.o: 
-	$(CC) -c $(PARSER)/ParserProcessor.cpp $(CFLAGS) \
-	-o $(BUILD)/parser-processor.o
+$(BUILD)/parser-processor.o: 
+	$(CC) $(CFLAGS) -c $(PARSER)/ParserProcessor.cpp 
 
 # -- Server Files -- #
 
-server.o:
-	$(CC) -c $(SERVER)/Server.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/server.o
+$(BUILD)/server.o:
+	$(CC) $(CFLAGS) -c $(SERVER)/Server.cpp -I $(SERVER)
 
-request-handler.o: 
-	$(CC) -c $(SERVER)/RequestHandler.cpp $(CFLAGS) \
-	-o $(BUILD)/request-handler.o
+$(BUILD)/request-handler.o: 
+	$(CC) $(CFLAGS) -c $(SERVER)/RequestHandler.cpp
 
-file-request-handler.o: 
-	$(CC) -c $(SERVER)/FileRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/file-request-handler.o
+$(BUILD)/file-request-handler.o: 
+	$(CC) $(CFLAGS) -c $(SERVER)/FileRequestHandler.cpp -I $(SERVER)
 
-echo-request-handler.o: 
-	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/echo-request-handler.o
+$(BUILD)/echo-request-handler.o: 
+	$(CC) $(CFLAGS) -c $(SERVER)/EchoRequestHandler.cpp -I $(SERVER)
 
-mime-types.o:
-	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
+$(BUILD)/mime-types.o:
+	$(CC) $(CFLAGS) -c $(SERVER)/MimeTypes.cpp 
 
-reply.o:
-	$(CC) -c $(SERVER)/reply.cpp $(CFLAGS) -o $(BUILD)/reply.o
+$(BUILD)/reply.o:
+	$(CC) $(CFLAGS) -c $(SERVER)/reply.cpp 
 
 # -- Server -- #
 
-webserver: parser-processor.o config-parser.o server.o reply.o \
-		   file-request-handler.o echo-request-handler.o request-handler.o
-	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
-	$(BUILD)/server.o $(BUILD)/file-request-handler.o \
-	$(BUILD)/echo-request-handler.o $(BUILD)/request-handler.o \
-	$(BUILD)/reply.o $(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
+webserver: $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
+		   $(BUILD)/server.o $(BUILD)/reply.o \
+		   $(BUILD)/file-request-handler.o $(BUILD)/echo-request-handler.o \
+		   $(BUILD)/request-handler.o
+	$(CC) $(CFLAGS) $(BOOST_FLAGS) $(SRC)/webserver.cpp
 
 # Run the server using the default configuration
 run: all

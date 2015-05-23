@@ -7,7 +7,7 @@ TESTS_NAME=$(NAME)-tests
 
 # Source variables
 SRC=src
-BUILD=build
+BUILD := build
 PARSER=$(SRC)/parser
 SERVER=$(SRC)/server
 
@@ -26,62 +26,57 @@ ifeq ($(OS), Linux)
 endif
 ifeq ($(OS), Darwin)
 	CC=clang++
-	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++ 
+	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++
 	BOOST_FLAGS=-lboost_system -lboost_thread-mt
 	TEST_FLAGS=-std=c++11 -stdlib=libc++
 	CLEAN=*.dSYM 
 endif
 
-all: directories webserver
+all: webserver
 
 # Create a build directory if not already created (-p: avoid error if present)
-.PHONY: directories
-directories:
-	mkdir -p build
+$(BUILD):
+	mkdir -p $@
 
 # --------------- Source files --------------- #
 
 # -- Parser Files -- #
 
-config-parser.o:
-	$(CC) -c $(PARSER)/ConfigParser.cpp $(CFLAGS) -o $(BUILD)/config-parser.o
+$(BUILD)/ConfigParser.o:
+	$(CC) -c $(CFLAGS) $(PARSER)/ConfigParser.cpp -o $@
 
-parser-processor.o: 
-	$(CC) -c $(PARSER)/ParserProcessor.cpp $(CFLAGS) \
-	-o $(BUILD)/parser-processor.o
+$(BUILD)/ParserProcessor.o: 
+	$(CC) -c $(CFLAGS) $(PARSER)/ParserProcessor.cpp -o $@
 
 # -- Server Files -- #
 
-server.o:
-	$(CC) -c $(SERVER)/Server.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/server.o
+$(BUILD)/Server.o:
+	$(CC) $(CFLAGS) -c $(SERVER)/Server.cpp -I $(SERVER) -o $@
 
-request-handler.o: 
-	$(CC) -c $(SERVER)/RequestHandler.cpp $(CFLAGS) \
-	-o $(BUILD)/request-handler.o
+$(BUILD)/RequestHandler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/RequestHandler.cpp -I $(PARSER) -o $@
 
-file-request-handler.o: 
-	$(CC) -c $(SERVER)/FileRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/file-request-handler.o
+$(BUILD)/FileRequestHandler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/FileRequestHandler.cpp -I $(SERVER) -o $@
 
-echo-request-handler.o: 
-	$(CC) -c $(SERVER)/EchoRequestHandler.cpp $(CFLAGS) -I $(SERVER) \
-	-o $(BUILD)/echo-request-handler.o
+$(BUILD)/EchoRequestHandler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/EchoRequestHandler.cpp -I $(SERVER) -o $@
 
-mime-types.o:
-	$(CC) -c $(SERVER)/MimeTypes.cpp $(CFLAGS) -o $(BUILD)/mime-types.o
+$(BUILD)/MimeTypes.o:
+	$(CC) -c $(CFLAGS) $(SERVER)/MimeTypes.cpp -o $@
 
-reply.o:
-	$(CC) -c $(SERVER)/reply.cpp $(CFLAGS) -o $(BUILD)/reply.o
+$(BUILD)/reply.o:
+	$(CC) $(CFLAGS) -c $(SERVER)/reply.cpp -o $@
 
 # -- Server -- #
 
-webserver: parser-processor.o config-parser.o server.o reply.o \
-		   file-request-handler.o echo-request-handler.o request-handler.o
-	$(CC) $(BUILD)/parser-processor.o $(BUILD)/config-parser.o \
-	$(BUILD)/server.o $(BUILD)/file-request-handler.o \
-	$(BUILD)/echo-request-handler.o $(BUILD)/request-handler.o \
-	$(BUILD)/reply.o $(SRC)/webserver.cpp $(CFLAGS) $(BOOST_FLAGS) -o $(NAME)
+webserver: $(BUILD)/ParserProcessor.o $(BUILD)/ConfigParser.o \
+		   $(BUILD)/Server.o $(BUILD)/reply.o \
+		   $(BUILD)/FileRequestHandler.o \
+		   $(BUILD)/EchoRequestHandler.o \
+		   $(BUILD)/RequestHandler.o
+	$(CC) $(CFLAGS) $^ \
+	$(SRC)/webserver.cpp $(BOOST_FLAGS) -o $(NAME)
 
 # Run the server using the default configuration
 run: all

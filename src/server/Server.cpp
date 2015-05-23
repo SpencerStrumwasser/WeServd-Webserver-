@@ -1,138 +1,102 @@
-//
-// Created by David Pena on 5/12/15.
-//
+#include <string>
+
+#include <boost/bind.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "Server.h"
+#include "header.h"
 #include "reply.h"
+#include "config.h"
+#include "../request_handler.h"
 
-const std::string ECHO_PREFIX("/echo");
-const std::string FILE_PREFIX("/static");
+using boost::asio::ip::tcp;
 
-Server::Server(unsigned short port, strmap *locations) {
-    this->port = port;
-    this->locations = locations;
-}
-
-void Server::launch()
-{
-    // Launch server
-    boost::asio::io_service io_service;
-    server(io_service, this->port);
-}
-
-void Server::session(socket_ptr sock)
-{
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
-    try
-    {
-        char data[max_length];
-
-        // Get request data
-        boost::system::error_code error;
-        size_t length = sock->read_some(boost::asio::buffer(data), error);
-        if (error)
-            throw boost::system::system_error(error);
-
-        // Make a string from the received data
-        std::string request(data, length);
-        // Get request path
-        std::string path = get_request_path(request);
-
-        // Echo request
-        if (ParserProcessor::value_has_prefix(path, ECHO_PREFIX)) {
-            #ifdef DEBUG
-                fprintf(stderr, "DEBUG: Echoing request.\n\n");
-            #endif
-            EchoRequestHandler(sock, request).respond();
-            return;
-        }
-        // File request
-        else if (ParserProcessor::value_has_prefix(path, FILE_PREFIX)) {
-            // Check all defined static locations
-            for (auto it = this->locations->begin();
-                 it != this->locations->end(); ++it) {
-                // Make path in string map look like request path
-                std::string prefix("/static");
-                std::string slash("/");
-                std::string location_name_slash = prefix + it->first + slash;
-                // Check if this is the static path desired
-                if (ParserProcessor::value_has_prefix(path, location_name_slash)) {
-                    FileRequestHandler(sock, request, location_name_slash,
-                                       it->second).respond();
-                    return;
-                }
-            }
-        }
-
-        // 404 ERROR if we reach here
-        #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
-        #endif
-        reply not_found = reply::stock_reply(reply::status_type::not_found);
-        RequestHandler(sock, request).send_response(not_found.content,
-                                                    not_found.content.length());
+std::string Server::get_prefix(std::string full_path) {
+  if(full_path.at(0) != '/') {
+    return full_path;
+  } else {
+    size_t found = full_path.find("/", 1);
+    if(found != std::string::npos) {
+      return full_path.substr(0, found);
+    } else {
+      return full_path;
     }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
-    }
+  }
 }
 
-void Server::server(boost::asio::io_service& io_service,
-                    unsigned short port)
-{
-    using namespace boost::asio::ip;
-    // Accept incoming connections
-    tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
-    try {
-        // Start a thread that checks if the user entered q to quit the
-        // program in that case
-        boost::thread q(boost::bind(&Server::end, this));
-        while(true)
-        {
-            socket_ptr sock(new tcp::socket(io_service));
-            a.accept(*sock);
-            boost::thread t(boost::bind(&Server::session, this, sock));
-        }
-    }
-    catch(std::exception& e) {
-        printf("\n\n\nCaught exception\n\n\n");
-
-    }
+Server::Server(boost::asio::io_service& io_service, Config *conf) {
+  service_ = &io_service;
+  port_ = conf->get_port();
+  handlers_ = conf->get_handlers();
 }
 
-/**
- * Throws an ExitErrorException which should be caught to quit all
- * server threads.
- */
-void Server::end()
-{
-    std::string quit;
-    while (quit != "q")
-    {
-        printf("Enter q to quit the server: ");
-        // Release control to server
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
-        std::cin >> quit;
+void Server::run() {
+  printf("Server running on port %d...\n", port_);
+  tcp::acceptor a(*service_, tcp::endpoint(tcp::v4(), port_));
+  while(true) {
+    sock_ptr sock(new tcp::socket(*service_));
+    a.accept(*sock);
+    // Add echo_paths and static_paths to this?
+    boost::thread t(boost::bind(&Server::session, sock, this));
+  }
+}
+
+const HTTPRequest Server::parseRequest(std::istream &stream) {
+  HTTPRequest request;
+  int content_length;
+  std::string s;
+
+  stream >> request.method;
+  stream >> request.path;
+  stream >> s; // Get rid of the HTTP version
+
+  std::string header_name, header_value;
+  stream.ignore(1, '\n'); // don't care about newlines
+  while(stream.peek() != 13) { // while next character is not carriage return
+    std::pair<std::string, std::string> header;
+    getline(stream, header.first, ':');
+    stream.ignore(1, ' '); // ignore whitespace
+    getline(stream, header.second, '\r');
+    stream.ignore(1, '\n'); // don't care about newlines
+    if(header.first == "Content-Length") {
+      content_length = stoi(header_value);
     }
-    // If we reach here, the user entered "q"
-    throw ExitServerException();
+    request.headers.push_back(header);
+  }
+  stream.ignore(2, '\n'); // Get rid of empty lines at the end
+  if (content_length != 0) {
+    request.request_body.resize(content_length);
+    stream.read(&request.request_body[0], content_length);
+  }
+  return request;
 }
 
-/* --- Helper Functions --- */
+void Server::session(sock_ptr sock, Server *s) {
+  try {
+    // call process_request() on the request sent in
+    char req_buf[max_length];
 
-/**
- * Get the path from the given request string
- */
-std::string Server::get_request_path(std::string request){
-    // Delimiters that will be between the request path
-    std::string start_delimiter("GET");
-    std::string end_delimeter("HTTP");
-    // Get delimeter locations
-    unsigned long first = request.find(start_delimiter) + start_delimiter.length();
-    unsigned long last = request.find(end_delimeter);
-    // Get path from request
-    std::string path = request.substr(first, last - first);
-    boost::algorithm::trim(path);
-    return path;
-}
+    boost::system::error_code error;
+    size_t length = sock->read_some(boost::asio::buffer(req_buf), error);
+    if (error)
+      throw boost::system::system_error(error);
+
+    std::stringstream stream(std::string(req_buf, length));
+
+    const HTTPRequest request = s->parseRequest(stream);
+
+    std::string prefix = s->get_prefix(request.path);
+
+    if(s->handlers_.count(prefix) > 0) {
+      std::string response = s->handlers_[prefix]->HandleRequest(request);
+      boost::asio::write(*sock, boost::asio::buffer(response, response.size()));
+    } else {
+      boost::asio::write(*sock, boost::asio::buffer(status_strings::not_found, status_strings::not_found.size()));
+    }
+  }
+  catch (std::exception& e) {
+    std::cerr << "Exception in thread: " << e.what() << "\n";
+  }

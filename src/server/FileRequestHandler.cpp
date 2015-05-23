@@ -1,116 +1,76 @@
-//
-// Created by David Pena on 5/7/15.
-//
-// FileRequestHandler.cpp
-// ~~~~~~~~~~~~~~~~~~~
-//
-// Based on WTFIAWS request_handler.cpp
-//
-
 #include "FileRequestHandler.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <iostream>
-
 #include "reply.h"
-#include "request.h"
+#include "../../parser/config_parser.h"
+
+#include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <string>
+#include <vector>
+#include <sstream>
+#include <fstream>
 
 std::unordered_map<std::string, std::string> mime_types = {
-        { "gif", "image/gif" },
-        { "htm", "text/html" },
-        { "html", "text/html" },
-        { "jpg", "image/jpeg" },
-        { "png", "image/png" }
+  { "gif", "image/gif" },
+  { "htm", "text/html" },
+  { "html", "text/html" },
+  { "jpg", "image/jpeg" },
+  { "png", "image/png" }
 };
 
-FileRequestHandler::FileRequestHandler(socket_ptr sock,
-                                       const std::string request,
-                                       const std::string location_name,
-                                       const std::string location):
-        RequestHandler(sock, request)
-{
-    // Initialize subclass variables
-    this->location_name = location_name;
-    this->location = location;
+void StaticHandler::Configure(const NginxConfig& child_config_block) {
+  for(unsigned int i = 0; i < child_config_block.statements_.size(); i++) {
+    NginxConfigStatement *stmt = child_config_block.statements_[i].get();
+    if(stmt->tokens_[0].compare("root") == 0) {
+      // this is the remote path
+      root_ = stmt->tokens_[1];
+      break;
+    }
+  }
 }
 
-/* -------------------- Public -------------------- */
-
-void FileRequestHandler::respond()
-{
-<<<<<<< HEAD
-
-    std::string response = get_response(this->request);
-=======
-    std::string response = this->get_response();
->>>>>>> 2e886aba5b528f4e25f1fe35280d8616940ecc68
-    try
-    {
-        // Send the file response
-        this->send_response(response, response.length());
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
-    }
+std::string get_file_path(std::string path) {
+  size_t found = path.find("/", 1);
+  return path.substr(found, path.size() - found);
 }
 
-/* -------------------- Private -------------------- */
+std::string StaticHandler::HandleRequest(const HTTPRequest& req) {
+  std::string mime_type;
+  std::vector<std::string> splits;
+  boost::split(splits, req.path, boost::is_any_of("."));
+  std::string extension = splits.back();
+  if(mime_types.count(extension) == 0) {
+    // we don't know a mime-type for this extension
+    mime_type = "text/plain";
+  } else {
+    mime_type = mime_types[splits.back()];
+  }
 
-/**
- * Get Response to the given request
- */
-std::string FileRequestHandler::get_response() {
-    std::string req_type;
-    std::string req_path;
-    std::stringstream ss(this->request);
+  std::string file_path = root_ + get_file_path(req.path);
 
-    ss >> req_type >> req_path;
-    #ifdef DEBUG
-        printf("DEBUG: Serving file: %s\n", req_path.c_str());
-    #endif
-    // Remove the part corresponding to the location that says we want static..
-    req_path.erase(0, this->location_name.length());
-    // Now insert the base location that we want to go to
-    req_path.insert(0, this->location);
+  // Read file into string
+  std::ifstream t(file_path.c_str());
+  // Test for 404 error
+  if (!t)
+  {
+    return status_strings::not_found;
+  }
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  std::string content = buffer.str();
 
-    // Determine mime type
-    std::string mime_type;
-    std::vector<std::string> splits;
-    boost::split(splits, req_path, boost::is_any_of("."));
-    std::string extension = splits.back();
-    if (mime_types.count(extension) == 0) {
-        // we don't know a mime-type for this extension
-        mime_type = "text/plain";
-    }
-    else {
-        mime_type = mime_types[splits.back()];
-    }
+  std::string status = status_strings::ok;
+  std::vector<std::pair<std::string, std::string>> headers;
+  headers.push_back({ "Content-Length", std::to_string(content.size()) });
+  headers.push_back({ "Content-Type", mime_type });
 
-    // Read file into string
-    std::ifstream t(req_path.c_str());
-    // Test for 400 error
-    if (!t) {
-        return status_strings::not_found;
-    }
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    std::string content = buffer.str();
+  std::string response = status;
+  // Loop over headers and concatenate them
+  for(unsigned int i = 0; i < headers.size(); i++) {
+    response = response + headers[i].first + ": " + headers[i].second + "\r\n";
+  }
+  response += "\r\n" + content;
 
-    // Fill out the header to be written to the connection.
-    std::string status = status_strings::ok;
-    std::vector<header> headers;
-    headers.push_back((header){ "Content-Length", std::to_string(content.size()) });
-    headers.push_back((header){ "Content-Type", mime_type }); // should be actual mime-type later
-    std::string response = status;
-    // Loop over headers and concatenate them
-    for(unsigned int i = 0; i < headers.size(); i++) {
-        response = response + headers[i].name + ": " + headers[i].value + "\r\n";
-    }
-    response += "\r\n" + content;
-
-    return response;
+  return response;
 }
+

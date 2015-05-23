@@ -1,41 +1,45 @@
-//
-// Created by David Pena on 5/12/15.
-//
+#include <string>
+#include <vector>
+#include <map>
 
-#ifndef WESERVD_SERVER_H
-#define WESERVD_SERVER_H
+#include <boost/bind.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/asio.hpp>
 
-#include <exception>
+#include "config.h"
 
-#include "FileRequestHandler.h"
-#include "EchoRequestHandler.h"
+#ifndef SERVER_H
+#define SERVER_H
 
-class ExitServerException: public std::exception {
-private:
-    std::string message_;
-public:
-    ExitServerException(){}
-};
+using boost::asio::ip::tcp;
+
+typedef boost::shared_ptr<tcp::socket> sock_ptr;
+const int max_length = 1024;
 
 class Server {
 public:
-    Server(unsigned short port, strmap *locations);
-    /**
-     * Launches the webserver
-     */
-    void launch();
-private:
-    // Port to start the webserver on
-    unsigned short port;
-    // Mappings from request static paths to filesystem
-    strmap *locations;
+    // added doc_root to this
+  Server(boost::asio::io_service& io_service, Config *conf);
+  void run();
+  std::string get_prefix(std::string full_path);
+protected:
+  void static session(sock_ptr sock, Server *s);
+  unsigned short port_;
+  boost::asio::io_service *service_;
 
-    void server(boost::asio::io_service& io_service, unsigned short port);
-    void session(socket_ptr sock);
-    void end();
+  std::map<std::string, RequestHandler *> handlers_;
 
-    std::string get_request_path(std::string);
+  const HTTPRequest parseRequest(std::istream &stream);
+
+  void serve_file(sock_ptr sock, std::string file_name);
+
+  // The handler for all incoming requests
+  //request_handler request_handler_;
 };
+
+#endif
+
 
 
 #endif //WESERVD_SERVER_H

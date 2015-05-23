@@ -1,24 +1,14 @@
-//
-// Created by David Pena on 5/7/15.
-//
 
-#ifndef WESERVD_ECHOREQUESTHANDLER_H
-#define WESERVD_ECHOREQUESTHANDLER_H
+#include "../request_handler.h"
 
-#include "RequestHandler.h"
+#ifndef ECHOHANDLER_H
+#define ECHOHANDLER_H
 
-class EchoRequestHandler : RequestHandler {
+class EchoHandler : public RequestHandler {
 public:
-    EchoRequestHandler(socket_ptr sock, const std::string request);
-    /**
-     * Respond to the request
-     */
-    void respond();
-
-private:
-    static std::string format_range(const std::string& format_string,
-                                    const std::vector<std::string>& args);
+  void Configure(const NginxConfig& child_config_block);
+  std::string HandleRequest(const HTTPRequest& req);
 };
 
+#endif
 
-#endif //WESERVD_ECHOREQUESTHANDLER_H

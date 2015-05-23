@@ -53,8 +53,8 @@ $(BUILD)/ParserProcessor.o:
 $(BUILD)/Server.o:
 	$(CC) $(CFLAGS) -c $(SERVER)/Server.cpp -I $(SERVER) -o $@
 
-$(BUILD)/RequestHandler.o: 
-	$(CC) -c $(CFLAGS) $(SERVER)/RequestHandler.cpp -I $(PARSER) -o $@
+$(BUILD)/request_handler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/request_handler.cpp -I $(PARSER) -o $@
 
 $(BUILD)/FileRequestHandler.o: 
 	$(CC) -c $(CFLAGS) $(SERVER)/FileRequestHandler.cpp -I $(SERVER) -o $@
@@ -74,7 +74,7 @@ webserver: $(BUILD)/ParserProcessor.o $(BUILD)/ConfigParser.o \
 		   $(BUILD)/Server.o $(BUILD)/reply.o \
 		   $(BUILD)/FileRequestHandler.o \
 		   $(BUILD)/EchoRequestHandler.o \
-		   $(BUILD)/RequestHandler.o
+		   $(BUILD)/request_handler.o
 	$(CC) $(CFLAGS) $^ \
 	$(SRC)/webserver.cpp $(BOOST_FLAGS) -o $(NAME)
 

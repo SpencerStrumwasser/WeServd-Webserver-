@@ -41,12 +41,7 @@ FileRequestHandler::FileRequestHandler(socket_ptr sock,
 
 void FileRequestHandler::respond()
 {
-<<<<<<< HEAD
-
-    std::string response = get_response(this->request);
-=======
     std::string response = this->get_response();
->>>>>>> 2e886aba5b528f4e25f1fe35280d8616940ecc68
     try
     {
         // Send the file response

@@ -54,7 +54,7 @@ $(BUILD)/Server.o:
 	$(CC) $(CFLAGS) -c $(SERVER)/Server.cpp -I $(SERVER) -o $@
 
 $(BUILD)/request_handler.o: 
-	$(CC) -c $(CFLAGS) $(SERVER)/request_handler.cpp -I $(PARSER) -o $@
+	$(CC) -c $(CFLAGS) $(SRC)/request_handler.h -I $(PARSER) -o $@
 
 $(BUILD)/FileRequestHandler.o: 
 	$(CC) -c $(CFLAGS) $(SERVER)/FileRequestHandler.cpp -I $(SERVER) -o $@

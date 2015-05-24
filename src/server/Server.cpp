@@ -9,8 +9,7 @@
 #include "Server.h"
 #include "header.h"
 #include "reply.h"
-#include "config.h"
-#include "../request_handler.h"
+
 
 using boost::asio::ip::tcp;
 
@@ -100,3 +99,4 @@ void Server::session(sock_ptr sock, Server *s) {
   catch (std::exception& e) {
     std::cerr << "Exception in thread: " << e.what() << "\n";
   }
+}

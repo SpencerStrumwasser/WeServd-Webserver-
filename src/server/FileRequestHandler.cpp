@@ -1,6 +1,6 @@
 #include "FileRequestHandler.h"
 #include "reply.h"
-#include "../../parser/config_parser.h"
+#include "../parser/ConfigParser.h"
 
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>

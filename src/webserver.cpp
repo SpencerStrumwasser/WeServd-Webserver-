@@ -1,54 +1,51 @@
-// Code based off of echo Server boost: 
-// http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/example/cpp03/
-//     echo/blocking_tcp_echo_server.cpp
 
-#include <cstdlib>
+#include <ctime>
 #include <iostream>
+#include <string>
 
-#include "parser/ParserProcessor.h"
+#include <boost/bind.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/asio.hpp>
+
 #include "server/Server.h"
 
-#define DEBUG
+using boost::asio::ip::tcp;
 
-static const char *server_domain = "http://localhost";
+NginxConfig get_config(char *filename) {
+    NginxConfigParser parser;
+    NginxConfig out_config;
+
+    // Should probably care about success value
+    parser.Parse(filename, &out_config);
+
+    return out_config;
+}
 
 int main(int argc, char* argv[])
 {
-    using namespace std;
-    try
+  try
+  {
+    if (argc != 2)
     {
-        if (argc != 2) {
-            printf("Usage: ./webserver <config file>\n");
-            return 1;
-        }
-
-        // Parse the given configuration file
-        NginxConfigParser config_parser;
-        NginxConfig config;
-        config_parser.Parse(argv[1], &config);
-
-        // Get the port from the parsed configuration file
-        ParserProcessor parser_processor = ParserProcessor(config);
-        unsigned short port = parser_processor.get_port();
-
-        // Print server address
-        fprintf(stderr, "Starting server at %s:%d\n", server_domain, port);
-
-        // Get static locations from parsed configuration file
-        strmap *locations = parser_processor.get_static_handlers();
-        std::vector<std::string> *hello_locations =
-                parser_processor.get_helloworld_handlers();
-        std::vector<std::string> *echo_locations =
-                parser_processor.get_echo_handlers();
-
-        // Launch server
-        Server(port, locations).launch();
-    }
-    catch (std::exception& e) {
-        cerr << "Exception: " << e.what() << "\n";
+      std::cerr << "Usage: webserver <config>\n";
+      return 1;
     }
 
-    return 0;
+    NginxConfig conf = get_config(argv[1]);
+    Config *server_conf = new Config(&conf);
+
+    boost::asio::io_service io_service;
+
+    Server s(io_service, server_conf);
+
+    s.run();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Exception: " << e.what() << "\n";
+  }
+
+  return 0;
 }
-
 

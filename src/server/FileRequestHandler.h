@@ -1,4 +1,4 @@
-#include "../request_handler.h"
+#include "request_handler.h"
 
 #ifndef STATICHANDLER_H
 #define STATICHANDLER_H

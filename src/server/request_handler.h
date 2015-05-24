@@ -1,4 +1,5 @@
-#define REQUEST_HANDLER_H_
+#ifndef REQUESTHANDLER_H
+#define REQUESTHANDLER_H
 
 // As a reminder, here are the design decisions we voted on in class:
 //
@@ -40,6 +41,11 @@ struct HTTPRequest {
   std::string request_body;
 };
 
+namespace status_strings {
+    const std::string ok = "HTTP/1.0 200 OK\r\n";
+    const std::string not_found = "HTTP/1.0 404 Not Found\r\n\r\nFile Not Found\r\n";
+}
+
 // RequestHandler is a long lived object that is expected to be created at
 // server initialization time. There should be one RequestHandler for each
 // config block that will be stored in a dispatch map (see above).
@@ -64,3 +70,4 @@ class RequestHandler {
   virtual std::string HandleRequest(const HTTPRequest& req) = 0;
 };
 
+#endif

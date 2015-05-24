@@ -51,10 +51,7 @@ $(BUILD)/ParserProcessor.o:
 # -- Server Files -- #
 
 $(BUILD)/Server.o:
-	$(CC) $(CFLAGS) -c $(SERVER)/Server.cpp -I $(SERVER) -o $@
-
-$(BUILD)/request_handler.o: 
-	$(CC) -c $(CFLAGS) $(SRC)/request_handler.h -I $(PARSER) -o $@
+	$(CC) -c $(CFLAGS) $(SERVER)/Server.cpp -I $(SERVER) -o $@
 
 $(BUILD)/FileRequestHandler.o: 
 	$(CC) -c $(CFLAGS) $(SERVER)/FileRequestHandler.cpp -I $(SERVER) -o $@
@@ -62,19 +59,16 @@ $(BUILD)/FileRequestHandler.o:
 $(BUILD)/EchoRequestHandler.o: 
 	$(CC) -c $(CFLAGS) $(SERVER)/EchoRequestHandler.cpp -I $(SERVER) -o $@
 
-$(BUILD)/MimeTypes.o:
-	$(CC) -c $(CFLAGS) $(SERVER)/MimeTypes.cpp -o $@
-
-$(BUILD)/reply.o:
-	$(CC) $(CFLAGS) -c $(SERVER)/reply.cpp -o $@
+$(BUILD)/config.o:
+	$(CC) -c $(CFLAGS) $(SERVER)/config.cpp -o $@
 
 # -- Server -- #
 
 webserver: $(BUILD)/ParserProcessor.o $(BUILD)/ConfigParser.o \
-		   $(BUILD)/Server.o $(BUILD)/reply.o \
+		   $(BUILD)/Server.o \
 		   $(BUILD)/FileRequestHandler.o \
 		   $(BUILD)/EchoRequestHandler.o \
-		   $(BUILD)/request_handler.o
+		   $(BUILD)/config.o 
 	$(CC) $(CFLAGS) $^ \
 	$(SRC)/webserver.cpp $(BOOST_FLAGS) -o $(NAME)
 

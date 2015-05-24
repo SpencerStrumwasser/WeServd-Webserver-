@@ -5,7 +5,7 @@
 #include <utility>
 #include <string>
 
-#include "../request_handler.h"
+#include "request_handler.h"
 
 #ifndef CONFIG_H
 #define CONFIG_H

@@ -1,5 +1,4 @@
 #include "FileRequestHandler.h"
-#include "reply.h"
 #include "../parser/ConfigParser.h"
 
 #include <boost/asio.hpp>
@@ -9,6 +8,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <unordered_map>
 
 std::unordered_map<std::string, std::string> mime_types = {
   { "gif", "image/gif" },

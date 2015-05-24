@@ -17,12 +17,12 @@ handler static /images {
   root webserver_files/images/;
 }
 
-handler echo /copycat {
-    placeholder;
-}
-
 handler static /html {
   root webserver_files/html/;
+}
+
+handler echo /copycat {
+    placeholder;
 }
 
 handler helloworld /hw2 {

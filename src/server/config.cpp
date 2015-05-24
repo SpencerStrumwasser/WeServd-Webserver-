@@ -4,8 +4,8 @@
 #include <string>
 #include <utility>
 
-#include "echo_handler.h"
-#include "static_handler.h"
+#include "EchoRequestHandler.h"
+#include "FileRequestHandler.h"
 
 Config::Config(NginxConfig *conf) {
   config = conf;

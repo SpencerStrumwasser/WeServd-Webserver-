@@ -7,6 +7,8 @@
 #include <boost/thread/thread.hpp>
 #include <boost/asio.hpp>
 
+#include "config.h"
+
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -37,7 +39,3 @@ protected:
 };
 
 #endif
-
-
-
-#endif //WESERVD_SERVER_H

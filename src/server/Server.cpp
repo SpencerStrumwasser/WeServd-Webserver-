@@ -8,6 +8,7 @@
 
 #include "Server.h"
 #include "header.h"
+#include "NotFoundHandler.h"
 
 static const char *server_domain = "http://localhost";
 
@@ -73,42 +74,37 @@ const HTTPRequest Server::parseRequest(std::istream &stream) {
   return request;
 }
 
+
+
 void Server::session(sock_ptr sock, Server *s) {
-    try {
-        // Read request into buffer
-        char req_buf[max_length];
+  try {
+    // call process_request() on the request sent in
+    char req_buf[max_length];
 
-        boost::system::error_code error;
-        size_t length = sock->read_some(boost::asio::buffer(req_buf), error);
-        if (error)
-          throw boost::system::system_error(error);
+    boost::system::error_code error;
+    size_t length = sock->read_some(boost::asio::buffer(req_buf), error);
+    if (error)
+      throw boost::system::system_error(error);
 
-        std::stringstream stream(std::string(req_buf, length));
+    std::stringstream stream(std::string(req_buf, length));
 
-        // Create HTTP request from read request
-        const HTTPRequest request = s->parseRequest(stream);
-        std::string prefix = s->get_prefix(request.path);
+    const HTTPRequest request = s->parseRequest(stream);
 
-        using namespace boost::asio;
-        if(s->handlers_.count(prefix) > 0) {
-            std::string response = s->handlers_[prefix]->HandleRequest(request);
-            write(*sock, buffer(response, response.size()));
-        } else {
-            write(*sock, buffer(status_strings::not_found,
-                                status_strings::not_found.size()));
-        }
+    std::string prefix = s->get_prefix(request.path);
 
-        // 404 ERROR if we reach here
-        #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
-        #endif
-
+    std::string response;
+    if(s->handlers_.count(prefix) > 0) {
+      response = s->handlers_[prefix]->HandleRequest(request);
+    } else {
+      RequestHandler *not_found = new NotFoundHandler();
+      response = not_found->HandleRequest(request);
     }
-    catch (std::exception& e) {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
-    }
+    boost::asio::write(*sock, boost::asio::buffer(response, response.size()));
+  }
+  catch (std::exception& e) {
+    std::cerr << "Exception in thread: " << e.what() << "\n";
+  }
 }
-
 /**
  * Throws an ExitErrorException which should be caught to quit all
  * server threads.

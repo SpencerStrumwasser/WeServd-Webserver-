@@ -1,3 +1,6 @@
+//Based of off WTFIAWS' code
+
+
 #include <string>
 
 #include <boost/bind.hpp>

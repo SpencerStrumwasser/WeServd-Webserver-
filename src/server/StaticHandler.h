@@ -1,3 +1,7 @@
+//Based of off WTFIAWS' code
+
+
+
 #include "request_handler.h"
 
 #ifndef STATICHANDLER_H

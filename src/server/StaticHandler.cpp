@@ -1,3 +1,7 @@
+//Based of off WTFIAWS' code
+
+
+
 #include "StaticHandler.h"
 #include "../parser/ConfigParser.h"
 

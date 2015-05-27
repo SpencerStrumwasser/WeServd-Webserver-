@@ -1,4 +1,4 @@
-#include "FileRequestHandler.h"
+#include "StaticHandler.h"
 #include "../parser/ConfigParser.h"
 
 #include <boost/asio.hpp>

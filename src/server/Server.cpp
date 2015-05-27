@@ -9,8 +9,15 @@
 #include "Server.h"
 #include "header.h"
 
+static const char *server_domain = "http://localhost";
 
 using boost::asio::ip::tcp;
+
+Server::Server(boost::asio::io_service& io_service, Config *conf) {
+    service_ = &io_service;
+    port_ = conf->get_port();
+    handlers_ = conf->get_handlers();
+}
 
 std::string Server::get_prefix(std::string full_path) {
   if(full_path.at(0) != '/') {
@@ -25,19 +32,13 @@ std::string Server::get_prefix(std::string full_path) {
   }
 }
 
-Server::Server(boost::asio::io_service& io_service, Config *conf) {
-  service_ = &io_service;
-  port_ = conf->get_port();
-  handlers_ = conf->get_handlers();
-}
-
 void Server::run() {
-  printf("Server running on port %d...\n", port_);
+  fprintf(stderr, "Starting server at %s:%d\n", server_domain, port_);
   tcp::acceptor a(*service_, tcp::endpoint(tcp::v4(), port_));
+  boost::thread q(boost::bind(&Server::end, this));
   while(true) {
     sock_ptr sock(new tcp::socket(*service_));
     a.accept(*sock);
-    // Add echo_paths and static_paths to this?
     boost::thread t(boost::bind(&Server::session, sock, this));
   }
 }
@@ -73,29 +74,55 @@ const HTTPRequest Server::parseRequest(std::istream &stream) {
 }
 
 void Server::session(sock_ptr sock, Server *s) {
-  try {
-    // call process_request() on the request sent in
-    char req_buf[max_length];
+    try {
+        // Read request into buffer
+        char req_buf[max_length];
 
-    boost::system::error_code error;
-    size_t length = sock->read_some(boost::asio::buffer(req_buf), error);
-    if (error)
-      throw boost::system::system_error(error);
+        boost::system::error_code error;
+        size_t length = sock->read_some(boost::asio::buffer(req_buf), error);
+        if (error)
+          throw boost::system::system_error(error);
 
-    std::stringstream stream(std::string(req_buf, length));
+        std::stringstream stream(std::string(req_buf, length));
 
-    const HTTPRequest request = s->parseRequest(stream);
+        // Create HTTP request from read request
+        const HTTPRequest request = s->parseRequest(stream);
+        std::string prefix = s->get_prefix(request.path);
 
-    std::string prefix = s->get_prefix(request.path);
+        using namespace boost::asio;
+        if(s->handlers_.count(prefix) > 0) {
+            std::string response = s->handlers_[prefix]->HandleRequest(request);
+            write(*sock, buffer(response, response.size()));
+        } else {
+            write(*sock, buffer(status_strings::not_found,
+                                status_strings::not_found.size()));
+        }
 
-    if(s->handlers_.count(prefix) > 0) {
-      std::string response = s->handlers_[prefix]->HandleRequest(request);
-      boost::asio::write(*sock, boost::asio::buffer(response, response.size()));
-    } else {
-      boost::asio::write(*sock, boost::asio::buffer(status_strings::not_found, status_strings::not_found.size()));
+        // 404 ERROR if we reach here
+        #ifdef DEBUG
+            fprintf(stderr, "DEBUG: Unrecognized request type.\n\n");
+        #endif
+
     }
-  }
-  catch (std::exception& e) {
-    std::cerr << "Exception in thread: " << e.what() << "\n";
-  }
+    catch (std::exception& e) {
+        std::cerr << "Exception in thread: " << e.what() << "\n";
+    }
+}
+
+/**
+ * Throws an ExitErrorException which should be caught to quit all
+ * server threads.
+ */
+void Server::end()
+{
+    std::string quit;
+    while (quit != "q")
+    {
+        printf("Enter q to quit the server: ");
+        // Release control to server
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+        std::cin >> quit;
+    }
+    // If we reach here, the user entered "q"
+    throw ExitServerException();
 }

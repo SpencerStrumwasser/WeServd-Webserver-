@@ -3,9 +3,10 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <cstdio>
 
-#include "EchoRequestHandler.h"
-#include "FileRequestHandler.h"
+#include "EchoHandler.h"
+#include "StaticHandler.h"
 
 Config::Config(NginxConfig *conf) {
   config = conf;
@@ -43,5 +44,6 @@ std::map<std::string, RequestHandler *> Config::get_handlers() {
       map[path] = handler;
     }
   }
+
   return map;
 }

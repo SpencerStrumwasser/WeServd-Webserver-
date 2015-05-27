@@ -1,4 +1,4 @@
-#include "EchoRequestHandler.h"
+#include "EchoHandler.h"
 
 #include <boost/asio.hpp>
 
@@ -7,7 +7,9 @@ void EchoHandler::Configure(const NginxConfig& child_config_block) {
 }
 
 std::string EchoHandler::HandleRequest(const HTTPRequest& req) {
-  printf("Echoing request\n");
+  #ifdef DEBUG
+    printf("Echoing request\n");
+  #endif
   std::string result = status_strings::ok;
   result += "\n";
   result += req.method + " " + req.path + " HTTP/1.1\r\n";

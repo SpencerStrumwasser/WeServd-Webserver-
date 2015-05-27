@@ -1,3 +1,6 @@
+//Based of off WTFIAWS' code
+
+
 
 #include "NotFoundHandler.h"
 #include <fstream>

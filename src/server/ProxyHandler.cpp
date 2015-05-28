@@ -15,7 +15,7 @@ std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
     // Construct query using name of server and service
-    boost::asio::ip::tcp::resolver::query query("localhost", "1080");
+    boost::asio::ip::tcp::resolver::query query(host, port);
     boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
     boost::asio::ip::tcp::socket socket(io_service);
     
@@ -26,15 +26,16 @@ std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {
     std::stringstream request_;
     request_ << req.method + " " + req.path + " HTTP/1.1\r\n";
     for (int i = 0; i < req.headers.size(); i++) {
-        request_ << req.headers.first + " " + req.headers.second + "\r\n";
+        request_ << req.headers[i].first + " " + req.headers[i].second + "\r\n";
     }
     request_ << "\r\n" + req.request_body;
+    std::cout << "Request: " << request_.str() << '\n';
+    boost::system::error_code error;
     boost::asio::write(socket, boost::asio::buffer(request_.str()), error);
 
     std::string response = "";
     for (;;) {
         boost::array<char, 128> buf;
-        boost::system::error_code error;
         // Read reply from server
         size_t len = socket.read_some(boost::asio::buffer(buf), error);
         if (error == boost::asio::error::eof)

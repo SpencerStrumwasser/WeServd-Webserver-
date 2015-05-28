@@ -9,6 +9,7 @@
 #include "../parser/ConfigParser.h"
 
 void ProxyHandler::Configure(const NginxConfig& child_config_block) {
+    /* Get host website and port number from config file. */
     for (std::vector<std::shared_ptr<NginxConfigStatement>>::const_iterator iter =
      child_config_block.statements_.begin();
      iter != child_config_block.statements_.end(); ++iter) {

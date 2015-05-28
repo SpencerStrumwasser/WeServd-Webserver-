@@ -7,7 +7,8 @@
 #   . static
 #   . echo
 #   . helloworld
-#   . placeholder : used to prevent an empty block from being ignored [BUG]
+#   . host [website] [port]
+#   . TooSexyForYourCat : used to prevent an empty block from being ignored [BUG]
 #   . <any other handlers you create>
 #   . <any keywords defined by handlers> (e.g. root)
 

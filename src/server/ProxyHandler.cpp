@@ -7,7 +7,7 @@
 #include "ProxyHandler.h"
 
 void ProxyHandler::Configure(const NginxConfig& child_config_block) {
-    host = "www.caltech.edu";
+    host = "www.google.com";
     port = "80";
 }
 
@@ -23,15 +23,25 @@ std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {
     boost::asio::connect(socket,endpoint_iterator);
 
     // Send get request
-    std::stringstream request_;
-    request_ << req.method + " " + req.path + " HTTP/1.1\r\n";
+    std::string request = "";
+    
+    // Strip handler extension.
+    std::istringstream iss(req.path);
+    std::string handlerExt = "";
+    std::getline(iss, handlerExt, '/');
+    std::getline(iss, handlerExt, '/');
+    std::string path(req.path.begin() + handlerExt.size() + 1, req.path.end());
+    if (path.empty()) {
+        path = "/";
+    } 
+    request += req.method + " " + path + " HTTP/1.1\r\n\r\n";
     for (int i = 0; i < req.headers.size(); i++) {
-        request_ << req.headers[i].first + " " + req.headers[i].second + "\r\n";
+        request += req.headers[i].first + " " + req.headers[i].second + "\r\n";
     }
-    request_ << "\r\n" + req.request_body;
-    std::cout << "Request: " << request_.str() << '\n';
+    request += "\r\n" + req.request_body;
+    std::cout << "Request: " << request << '\n';
     boost::system::error_code error;
-    boost::asio::write(socket, boost::asio::buffer(request_.str()), error);
+    boost::asio::write(socket, boost::asio::buffer(request), error);
 
     std::string response = "";
     for (;;) {

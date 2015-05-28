@@ -7,6 +7,8 @@
 #include "ProxyHandler.h"
 
 void ProxyHandler::Configure(const NginxConfig& child_config_block) {
+    host = "www.caltech.edu";
+    port = "80";
 }
 
 std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {

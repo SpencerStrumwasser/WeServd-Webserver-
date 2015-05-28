@@ -7,6 +7,7 @@
 
 #include "EchoHandler.h"
 #include "StaticHandler.h"
+#include "ProxyHandler.h"
 
 Config::Config(NginxConfig *conf) {
   config = conf;
@@ -33,10 +34,13 @@ std::map<std::string, RequestHandler *> Config::get_handlers() {
       std::string handler_type = stmt->tokens_[1];
       std::string path = stmt->tokens_[2];
       RequestHandler *handler;
-      if(handler_type == "static") {
+      if (handler_type == "static") {
         handler = new StaticHandler();
-      } else if(handler_type == "echo") {
+      } else if (handler_type == "echo") {
         handler = new EchoHandler();
+      } else if (handler_type == "proxy") {
+        // BigDipper Proxy handler.
+        handler = new ProxyHandler();
       } else {
         continue;
       }

@@ -21,13 +21,13 @@ PARSER_TEST=$(TEST)/parser
 ifeq ($(OS), Linux)
 	CC=g++
 	CFLAGS=-g -Wall -std=c++0x
-	BOOST_FLAGS=-lboost_system -lboost_thread
+	BOOST_FLAGS=-lboost_system -lboost_thread -lpthread
 	TEST_FLAGS=-g -std=c++0x 
 endif
 ifeq ($(OS), Darwin)
 	CC=clang++
 	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++
-	BOOST_FLAGS=-lboost_system -lboost_thread-mt
+	BOOST_FLAGS=-lboost_system -lboost_thread-mt -lpthread
 	TEST_FLAGS=-std=c++11 -stdlib=libc++
 	CLEAN=*.dSYM 
 endif
@@ -57,7 +57,10 @@ $(BUILD)/StaticHandler.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/StaticHandler.cpp -I $(SERVER) -o $@
 
 $(BUILD)/EchoHandler.o: 
-	$(CC) -c $(CFLAGS) $(SERVER)/EchoHandler.cpp -I $(SERVER) -o $@ 
+	$(CC) -c $(CFLAGS) $(SERVER)/EchoHandler.cpp -I $(SERVER) -o $@
+
+$(BUILD)/ProxyHandler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/ProxyHandler.cpp -I $(SERVER) -o $@ -lboost_system -lpthread
 
 $(BUILD)/config.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/config.cpp -o $@
@@ -66,7 +69,8 @@ $(BUILD)/config.o:
 
 webserver: $(BUILD)/ParserProcessor.o $(BUILD)/ConfigParser.o \
 		   $(BUILD)/Server.o $(BUILD)/config.o \
-		   $(BUILD)/StaticHandler.o $(BUILD)/EchoHandler.o 
+		   $(BUILD)/StaticHandler.o $(BUILD)/EchoHandler.o \
+		   $(BUILD)/ProxyHandler.o 
 	$(CC) $(CFLAGS) $^ \
 	$(SRC)/webserver.cpp $(BOOST_FLAGS) -o $(NAME)
 

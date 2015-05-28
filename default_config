@@ -22,14 +22,14 @@ handler static /html {
 }
 
 handler echo /copycat {
-    placeholder;
+    ImTooSexyForYourCat;
 }
 
 handler helloworld /hw2 {
-    placeholder;
+    TooSexyForYourCat;
 }
 
 handler proxy /reverse {
-    placeholder;
+    host www.google.com 80;
 }
 

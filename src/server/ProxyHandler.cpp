@@ -1,14 +1,26 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <vector>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include "ProxyHandler.h"
+#include "../parser/ConfigParser.h"
 
 void ProxyHandler::Configure(const NginxConfig& child_config_block) {
-    host = "www.google.com";
-    port = "80";
+    for (std::vector<std::shared_ptr<NginxConfigStatement>>::const_iterator iter =
+     child_config_block.statements_.begin();
+     iter != child_config_block.statements_.end(); ++iter) {
+        std::cout << (*iter)->tokens_.size();
+        if (((*iter)->tokens_.size() > 2)) {
+            if((*iter)->tokens_[0] == "host") {
+                host = (*iter)->tokens_[1];
+                port = (*iter)->tokens_[2];
+            }
+        }
+    }
+
 }
 
 std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {
@@ -35,7 +47,7 @@ std::string ProxyHandler::HandleRequest(const HTTPRequest& req) {
         path = "/";
     } 
     request += req.method + " " + path + " HTTP/1.1\r\n\r\n";
-    for (int i = 0; i < req.headers.size(); i++) {
+    for (unsigned int i = 0; i < req.headers.size(); i++) {
         request += req.headers[i].first + " " + req.headers[i].second + "\r\n";
     }
     request += "\r\n" + req.request_body;

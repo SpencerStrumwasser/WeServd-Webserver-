@@ -1,3 +1,10 @@
+CXX = g++
+CXXFLAGS = -std=c++0x -Wall -g
+LDFLAGS = -lboost_system
+GTEST_DIR = lib/gtest-1.7.0
+TESTFLAGS = -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread
+SRCS = src/server/ProxyHandler.cpp src/parser/ParserProcessor.h
+
 # Determine OS
 OS := $(shell uname)
 
@@ -21,13 +28,13 @@ PARSER_TEST=$(TEST)/parser
 ifeq ($(OS), Linux)
 	CC=g++
 	CFLAGS=-g -Wall -std=c++0x
-	BOOST_FLAGS=-lboost_system -lboost_thread
+	BOOST_FLAGS=-lboost_system -lboost_thread -lpthread
 	TEST_FLAGS=-g -std=c++0x 
 endif
 ifeq ($(OS), Darwin)
 	CC=clang++
 	CFLAGS=-g -Wall -std=c++11 -stdlib=libc++
-	BOOST_FLAGS=-lboost_system -lboost_thread-mt
+	BOOST_FLAGS=-lboost_system -lboost_thread-mt -lpthread
 	TEST_FLAGS=-std=c++11 -stdlib=libc++
 	CLEAN=*.dSYM 
 endif
@@ -57,7 +64,10 @@ $(BUILD)/StaticHandler.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/StaticHandler.cpp -I $(SERVER) -o $@
 
 $(BUILD)/EchoHandler.o: 
-	$(CC) -c $(CFLAGS) $(SERVER)/EchoHandler.cpp -I $(SERVER) -o $@ 
+	$(CC) -c $(CFLAGS) $(SERVER)/EchoHandler.cpp -I $(SERVER) -o $@
+
+$(BUILD)/ProxyHandler.o: 
+	$(CC) -c $(CFLAGS) $(SERVER)/ProxyHandler.cpp -I $(SERVER) -o $@ -lboost_system -lpthread
 
 $(BUILD)/config.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/config.cpp -o $@
@@ -66,7 +76,8 @@ $(BUILD)/config.o:
 
 webserver: $(BUILD)/ParserProcessor.o $(BUILD)/ConfigParser.o \
 		   $(BUILD)/Server.o $(BUILD)/config.o \
-		   $(BUILD)/StaticHandler.o $(BUILD)/EchoHandler.o 
+		   $(BUILD)/StaticHandler.o $(BUILD)/EchoHandler.o \
+		   $(BUILD)/ProxyHandler.o 
 	$(CC) $(CFLAGS) $^ \
 	$(SRC)/webserver.cpp $(BOOST_FLAGS) -o $(NAME)
 
@@ -105,8 +116,12 @@ all-tests: libgtest.a parser-tests.o parser-processor-tests.o
 	$(BUILD)/parser-processor.o \
 	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o \
 	$(BUILD)/parser-processor-tests.o \
-	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME) 
+	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME)
 
+proxy-test: tests/ProxyHandlerTest.cpp
+	$(CXX) $(CXXFLAGS) $(TESTFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc
+	ar -rv libgtest.a gtest-all.o
+	$(CXX) $(CXXFLAGS) $(TESTFLAGS) $(SRCS) tests/ProxyHandlerTest.cpp $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o proxy_test $(LDFLAGS)
 
 # --------------- Cleaning --------------- #
 

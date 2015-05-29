@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++0x -Wall -g
 LDFLAGS = -lboost_system
 GTEST_DIR = lib/gtest-1.7.0
 TESTFLAGS = -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread
-SRCS = src/server/ProxyHandler.cpp
+SRCS = src/server/ProxyHandler.cpp src/parser/ParserProcessor.h
 
 # Determine OS
 OS := $(shell uname)

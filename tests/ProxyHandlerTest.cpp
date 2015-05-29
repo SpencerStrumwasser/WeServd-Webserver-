@@ -20,7 +20,6 @@ class RequestHandlerTest : public ::testing::Test {
             const std::string &host, const std::string &port, const std::string &expected) {
         ProxyHandler a;
         std::string output;
-        size_t check_http;
         size_t check_domain;
         size_t check_content_type;
         size_t check_date;
@@ -35,15 +34,13 @@ class RequestHandlerTest : public ::testing::Test {
 
         output = a.HandleRequest(req);
 
-        check_http = output.find("HTTP/1.0 200 OK\r\n");
-       // check_domain = output.find(expected);
-        check_content_type = output.find("Content-Type: text/html;\r\n");     
+        check_domain = output.find(expected);
+        check_content_type = output.find("Content-Type: text/html;");     
         check_date = output.find("GMT");
 
-        if (check_http == std::string::npos ||
-            check_content_type == std::string::npos ||
-            check_date == std::string::npos /* ||
-            check_domain == std::string::npos*/ ) {
+        if (check_content_type == std::string::npos ||
+            check_date == std::string::npos ||
+            check_domain == std::string::npos) {
             return 0;
         }
         return 1;     

@@ -1,9 +1,15 @@
 foo "bar";
 
 server {
-  port   8080;
+  listen   8080;
   server_name foo.com;
-  static1 /images;
-  static2 /videos;
-  static3 /htmls;
+  handler static /html {
+    root webserver_files/html/;
+  }
+  handler static /videos {
+    root webserver_files/videos/;
+  }
+  handler static /gifs {
+    root webserver_files/gifs/;
+  }
 }

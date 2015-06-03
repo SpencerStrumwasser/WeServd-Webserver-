@@ -8,11 +8,11 @@
 #   . echo
 #   . helloworld
 #   . host [website] [port]
-#   . TooSexyForYourCat : used to prevent an empty block from being ignored [BUG]
+#   . empty : used to prevent an empty block from being ignored [BUG]
 #   . <any other handlers you create>
 #   . <any keywords defined by handlers> (e.g. root)
 
-listen 1337;
+listen 4000;
 
 handler static /images {
   root webserver_files/images/;
@@ -23,11 +23,11 @@ handler static /html {
 }
 
 handler echo /copycat {
-    ImTooSexyForYourCat;
+    empty;
 }
 
 handler helloworld /hw2 {
-    TooSexyForYourCat;
+    empty;
 }
 
 handler proxy /reverse {

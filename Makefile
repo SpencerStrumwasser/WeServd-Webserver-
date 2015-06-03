@@ -1,10 +1,3 @@
-CXX = g++
-CXXFLAGS = -std=c++0x -Wall -g
-LDFLAGS = -lboost_system
-GTEST_DIR = lib/gtest-1.7.0
-TESTFLAGS = -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread
-SRCS = src/server/ProxyHandler.cpp src/parser/ParserProcessor.h
-
 # Determine OS
 OS := $(shell uname)
 
@@ -67,7 +60,7 @@ $(BUILD)/EchoHandler.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/EchoHandler.cpp -I $(SERVER) -o $@
 
 $(BUILD)/ProxyHandler.o: 
-	$(CC) -c $(CFLAGS) $(SERVER)/ProxyHandler.cpp -I $(SERVER) -o $@ -lboost_system -lpthread
+	$(CC) -c $(CFLAGS) $(SERVER)/ProxyHandler.cpp -I $(SERVER) -o $@
 
 $(BUILD)/config.o:
 	$(CC) -c $(CFLAGS) $(SERVER)/config.cpp -o $@
@@ -88,7 +81,7 @@ run: all
 
 # --------------- Test files --------------- #
 
-test: directories all-tests
+test: all-tests
 	./$(TESTS_NAME)
 
 gtest-all.o:
@@ -102,26 +95,27 @@ gtest-main.o: gtest-all.o
 	$(CC) $(TEST_FLAGS) -I $(GTEST)/include \
 	-c $(GTEST)/src/gtest_main.cc -o $(BUILD)/gtest-main.o
 
-parser-tests.o: gtest-main.o config-parser.o
+parser-tests.o: gtest-main.o $(BUILD)/ConfigParser.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
 	-c $(PARSER_TEST)/ConfigParserTests.cpp	-o $(BUILD)/parser-tests.o
 
-parser-processor-tests.o: gtest-main.o parser-processor.o
+parser-processor-tests.o: gtest-main.o $(BUILD)/ParserProcessor.o
 	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include -I $(PARSER) \
 	-c $(PARSER_TEST)/ParserProcessorTests.cpp \
 	-o $(BUILD)/parser-processor-tests.o
 
-all-tests: libgtest.a parser-tests.o parser-processor-tests.o
-	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/config-parser.o \
-	$(BUILD)/parser-processor.o \
-	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o \
-	$(BUILD)/parser-processor-tests.o \
-	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME)
+proxy-test.o: libgtest.a
+	$(CC) $(CFLAGS) -isystem $(GTEST)/include -I$(GTEST) -pthread \
+	$(SERVER)/ProxyHandler.cpp $(TEST)/ProxyHandlerTest.cpp \
+	$(GTEST)/src/gtest_main.cc $(BUILD)/libgtest.a -o $(BUILD)/proxy-test.o $(BOOST_FLAGS)
 
-proxy-test: tests/ProxyHandlerTest.cpp
-	$(CXX) $(CXXFLAGS) $(TESTFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc
-	ar -rv libgtest.a gtest-all.o
-	$(CXX) $(CXXFLAGS) $(TESTFLAGS) $(SRCS) tests/ProxyHandlerTest.cpp $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o proxy_test $(LDFLAGS)
+all-tests: libgtest.a parser-tests.o parser-processor-tests.o $(BUILD)/ProxyHandler.o
+	$(CC) $(TEST_FLAGS) -isystem $(GTEST)/include $(BUILD)/ConfigParser.o \
+	$(BUILD)/ParserProcessor.o \
+	$(BUILD)/gtest-all.o $(BUILD)/parser-tests.o \
+	$(BUILD)/parser-processor-tests.o $(BUILD)/ProxyHandler.o \
+	$(BUILD)/gtest-main.o -lpthread -o $(TESTS_NAME) $(BOOST_FLAGS)
+
 
 # --------------- Cleaning --------------- #
 

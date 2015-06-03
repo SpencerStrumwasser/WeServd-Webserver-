@@ -10,9 +10,11 @@
 
 void ProxyHandler::Configure(const NginxConfig& child_config_block) {
     /* Get host website and port number from config file. */
-    for (std::vector<std::shared_ptr<NginxConfigStatement>>::const_iterator iter =
-     child_config_block.statements_.begin();
-     iter != child_config_block.statements_.end(); ++iter) {
+    std::vector<std::shared_ptr<NginxConfigStatement>>::const_iterator iter;
+    for (iter = child_config_block.statements_.begin();
+         iter != child_config_block.statements_.end();
+         ++iter)
+    {
         std::cout << (*iter)->tokens_.size();
         if (((*iter)->tokens_.size() > 2)) {
             if((*iter)->tokens_[0] == "host") {
